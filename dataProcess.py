@@ -13,30 +13,6 @@ def is_tool(name):
     from shutil import which
 
     return which(name) is not None
-#Function that plots the power of given audio
-def plotAudioPower(M,St,FSample):
-    audio_length = (M*St[:,0].size)/FSample
-    time = np.linspace(0., audio_length, St[:,0].size)
-    plt.plot(time, St[:, 0], label="Left channel")
-    plt.plot(time, St[:, 1], label="Right channel")
-    plt.legend()
-    plt.xlabel("Time [s]")
-    plt.ylabel("Amplitude")
-    plt.title("Power stream timeline")
-    plt.show()
-    pass
-#Function that plots the power as a time series for an audio
-def plotAudioPower(M,St,FSample):
-    audio_length = (M*St[:,0].size)/FSample
-    time = np.linspace(0., audio_length, St[:,0].size)
-    plt.plot(time, St[:, 0], label="Left channel")
-    plt.plot(time, St[:, 1], label="Right channel")
-    plt.legend()
-    plt.xlabel("Time [s]")
-    plt.ylabel("Amplitude")
-    plt.title("Power stream timeline")
-    plt.show()
-    pass
 #Function that plots both power and time series of an audio at once
 def plotAudio(FSample,samples,M,St):
     plt.figure("Audio Information")
@@ -64,7 +40,6 @@ def plotAudio(FSample,samples,M,St):
     plt.show()
     pass
 
-
 #check if needed programs are installed
 if not is_tool("ffmpeg"):
     print("Please install ffmpeg for the video processing")
@@ -80,10 +55,12 @@ output_resolution = "240x240"   #This string determines the output resolution of
 frameJump = 1                   #This number determines what is the next frame in the amostration process
 
 video_name = input("Please write the video name (w/ extension): ")
+foldername = input("Please write the folder name in which to extract: ")
+datapath = 'dataset/'+foldername
 
 try:
-    if not os.path.exists('dataset/images'):
-        os.makedirs('dataset/images')
+    if not os.path.exists(datapath):
+        os.makedirs(datapath)
 except OSError:
     print ('Error: Creating directory of data')
 
@@ -103,7 +80,7 @@ while(cap.isOpened()):
     if (videoFrame%frameJump == 0 ):
         if ret == True:
            # Saves image of the current frame in jpg file
-            name = './dataset/images/' + str(currentFrame) + '.jpg'
+            name = './'+datapath+'/'+ str(currentFrame) + '.jpg'
             #print ('Creating...' + name)
             cv2.imwrite(name,frame)
            # To stop duplicate images
@@ -124,6 +101,7 @@ print("Informations from the resized video:")
 os_command = "ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration,bit_rate -of default=noprint_wrappers=1 dataset/resized-"+video_name
 os.system(os_command)
 bit_rate = input("Please write the bitrate: ")
+
 #Extract the audio file from video
 audio_name = "dataset/audio-"+video_name[:len(video_name)-4]+".wav"
 os_command = "ffmpeg -i "+video_name+" -f wav -ar 48000 -ab "+bit_rate+" -vn "+audio_name
@@ -150,7 +128,7 @@ for i in range(0,total_number_of_video_frames):
     St[i,1] = log(partialSumRight)
     pass
 
-# save numpy array as csv file
+# save numpy array as .npy file
 np.save('audioPower.npy',St)
 
 print("Audio Power Calculated")
