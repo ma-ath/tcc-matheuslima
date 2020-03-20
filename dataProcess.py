@@ -103,7 +103,7 @@ os.system(os_command)
 bit_rate = input("Please write the bitrate: ")
 
 #Extract the audio file from video
-audio_name = "dataset/audio-"+video_name[:len(video_name)-4]+".wav"
+audio_name = datapath+"/audioData.wav"
 os_command = "ffmpeg -i "+video_name+" -f wav -ar 48000 -ab "+bit_rate+" -vn "+audio_name
 os.system(os_command)
 
@@ -129,7 +129,7 @@ for i in range(0,total_number_of_video_frames):
     pass
 
 # save numpy array as .npy file
-np.save('audioPower.npy',St)
+np.save(datapath+'/audioPower.npy',St)
 
 print("Audio Power Calculated")
 print("Plotting audio information")
