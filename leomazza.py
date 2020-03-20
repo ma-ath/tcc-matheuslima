@@ -1,5 +1,5 @@
 import os                                   #
-#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
 
 from tensorflow import keras
 from keras.optimizers import Adam
