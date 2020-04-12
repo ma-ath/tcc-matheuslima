@@ -51,7 +51,7 @@ if not is_tool("ffprobe"):
     pass
 
 # Resizes the video for the 240Nx240 screen resolution
-output_resolution = "240x240"   #This string determines the output resolution of the resized video
+output_resolution = "244x244"   #This string determines the output resolution of the resized video
 frameJump = 1                   #This number determines what is the next frame in the amostration process
 
 video_name = input("Please write the video name (w/ extension): ")

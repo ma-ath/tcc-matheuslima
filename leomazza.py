@@ -71,8 +71,9 @@ if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == T
 else:
     model = networkModel(image_shape)   #model created by Leonardo Mazza
     save_model(model)
+                                        #Adam optimizer
+opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
 
-opt = Adam(lr=lr_list)              #Adam optimizer
 model.compile(optimizer=opt, loss=mean_squared_error, metrics=['accuracy'])
 model.summary()                     #Show network model
 
@@ -89,7 +90,7 @@ print(X_test.shape)
 print(Y_test.shape)
 
                                     #Fit model
-model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=1,validation_data=(X_test, Y_test))
+model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test))
 
 score = model.evaluate(X_test, Y_test,metrics=['accuracy'], verbose=0)
 print('Score: ', score)
