@@ -59,12 +59,13 @@ def load_model():
 PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
 BATCH_SIZE = 4
 NB_EPOCH = 2
+USING_CACHE = False
 
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
 lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
 
                                     #Check if the model is already in cache
-if os.path.isfile(os.path.join('cache', 'architecture.json')):
+if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == True:
     print("using cached model")
     model = load_model()
 else:
