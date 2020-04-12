@@ -28,7 +28,10 @@ def networkModel(image_shape):
     #   We add to the model a GAP and a FC layer
     GAP_layer = GlobalAveragePooling2D(data_format=None)(convolutional_layer_output)
     FC_layer = Dense(128, activation='relu', name='dense_128')(GAP_layer)
-    output_layer = Dense(1, activation='relu', name='dense_1')(FC_layer)
+        #NOTE:
+        #ORIGINALY, THE LAST OUTPUT LAYER IS MADE OF ONLY ONE SINGLE RELU NEURON. I
+        #DECIDED TO PUT TWO OUTPUTS, ONE FOR EACH AUDIO CHANNEL
+    output_layer = Dense(2, activation='relu', name='dense_1')(FC_layer)
     #   Network Model
     #   input_layer -> convolutional_layer -> GAP_layer -> FC_layer
     model = Model(inputs=input_layer, outputs=output_layer)
