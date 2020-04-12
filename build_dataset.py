@@ -14,12 +14,20 @@ import re
 # this constant indicates how much of the data will be used as train data
 TEST_DATA_RATIO = 0.75
 AUDIO_DATA_NAME = "audioPower.npy"
+PROCESSED_DATA_FOLDER = "processedData/"
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", type=str, required=True,
 	help="path dataset of input images")
 args = vars(ap.parse_args())
+
+#creates folder for the processed data
+try:
+    if not os.path.exists(PROCESSED_DATA_FOLDER):
+        os.makedirs(PROCESSED_DATA_FOLDER)
+except OSError:
+    print ('Error: Creating directory of data')
 
 # grab all image paths and create and orders it
 imagePaths = list(paths.list_images(args["dataset"]))
@@ -32,8 +40,8 @@ testPaths = imagePaths[i:]
 
 # define the datasets
 datasets = [
-	("training", trainPaths, "images_training"),
-	("testing", testPaths, "images_testing")
+	("training", trainPaths, PROCESSED_DATA_FOLDER+"images_training"),
+	("testing", testPaths, PROCESSED_DATA_FOLDER+"images_testing")
 ]
 
 #load the audio presure data
@@ -48,18 +56,18 @@ for (dType, imagePaths, outputPath) in datasets:
 
 	#filedata
 
-	# open the output CSV file for writing
+	# open the output file for writing
 	print("[INFO] building '{}' split...".format(dType))
 	
 	# loop over all input images
 	for imagePath in imagePaths:
-		# load the input image and resize it to 64x64 pixels
+		# load the input image
 		image = cv2.imread(imagePath)
 
  		# create a flattened list of pixel values
 		idata = [np.array(x,dtype=np.uint8) for x in image.flatten()]
 
-		# extract the label from the St as the média between channel right and left
+		# extract two labels, one for each channel
 		ldata = np.array([St[i,0],St[i,1]],dtype=np.float32)
 
 		# idata = np.append(label,image,axis=0)
@@ -73,6 +81,7 @@ for (dType, imagePaths, outputPath) in datasets:
 
 		j+=1
 		i+=1
+
 	np.save(outputPath+"-img",outputdata)
 	np.save(outputPath+"-lbl",outputlabel)
 
