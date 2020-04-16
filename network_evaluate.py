@@ -5,7 +5,6 @@ from tensorflow import keras
 from keras.optimizers import Adam
 from keras.losses import mean_squared_error
 from keras.models import model_from_json
-from keras_preprocessing.image import ImageDataGenerator
 from network_model import networkModel
 import numpy as np
 from PIL import Image
@@ -56,28 +55,23 @@ def save_weights(model):
 
 def load_model():
     model = model_from_json(open(os.path.join('cache', 'architecture.json')).read())
-    #model.load_weights(os.path.join('cache', 'model_weights.h5'))
+    model.load_weights(os.path.join('cache', 'model_weights.h5'))
     return model
 
 PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
 BATCH_SIZE = 1
 NB_EPOCH = 1
-USING_CACHE = False
 
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
 lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
 
                                     #Check if the model is already in cache
-if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == True:
-    print("using cached model")
-    model = load_model()
-else:
-    model = networkModel(image_shape)   #model created by Leonardo Mazza
-    save_model(model)
-                                        #Adam optimizer
+print("Using Cached Model")
+model = load_model()
+                                    #Model optimizer and compilation
 opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
-
 model.compile(optimizer=opt, loss=mean_squared_error, metrics=['accuracy'])
+
 model.summary()                     #Show network model
 
 [
@@ -87,26 +81,8 @@ model.summary()                     #Show network model
     Y_test
 ] = loadDataset()                   #Load the dataset
 
-                                    #Fit model
-#fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test))
+score = model.evaluate(X_test, Y_test, verbose=2)
+print('Model\'s score: ', score)
 
-# construct the training image generator for data augmentation
-# This is made so as to help generalize the dataset
-dataset_augumentation = ImageDataGenerator(rotation_range=0,zoom_range=0,
-	width_shift_range=0, height_shift_range=0, shear_range=0,
-	horizontal_flip=False,fill_mode="nearest")
-# train the network
-# I use the fit_generator method in order to not overload the RAM memory in the server, as the
-# model.fit statement has to load the full dataset in RAM.
-fit_history = model.fit_generator(dataset_augumentation.flow(X_train, Y_train, batch_size=BATCH_SIZE),
-	validation_data=(X_test, Y_test),steps_per_epoch=len(X_train),
-    epochs=NB_EPOCH)
-
-save_model(model)                   #Save the calculated model to disk
-save_weights(model)                 #Save the calculated weigths to disk
-
-                                    #Save the fitting history to disk
-fit_history = pandas.DataFrame(fit_history.history)
-
-with open('fit_history.csv', mode='w') as f:
-    fit_history.to_csv(f)
+#img = Image.fromarray(X_train[10], 'RGB')
+#img.show()
