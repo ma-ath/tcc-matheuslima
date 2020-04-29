@@ -1,8 +1,8 @@
 # Método de Estimação da Pressão Sonora em Câmeras de Segurança Usando Redes Neurais Artificiais
-[Português](https://github.com/ma-ath/tcc-matheuslima/blob/master/README.md)
 [English](https://github.com/ma-ath/tcc-matheuslima/blob/master/readme/README.en.md)
+[日本語](https://github.com/ma-ath/tcc-matheuslima/blob/master/readme/README.jp.md)
 
-  O nível de pressão sonora em uma certa região da cidade é uma informação importante para as autoridades públicas, e que deve ser levada em conta em diversas atividades de tomadas de decisão relacionados ao georeferenciamento de empreendimentos públicos e privados. Em contrapartida, medir ativamente ponto a ponto da cidade para o levantamento desses dados é uma tarefa arduosa e cara. Câmeras de segurança já oferencem um banco de dados que contêm informações visuais de diversos pontos da cidades, sem entretanto, por motivos de legislação, possuírem qualquer informação de áudio. Esse trabalho tem por objetivo então de, utilizando-se de uma infraestrutura já implementada de câmeras de segurança, fazer a estimação do nível de pressão sonora em vídeos mudos a partir do treinamento de um modelo computacional feito sobre vídeo não-mudos, de forma a leventar um mapa de ruído sonoro em cidades.
+　O nível de pressão sonora em uma certa região da cidade é uma informação importante para as autoridades públicas, e que deve ser levada em conta em diversas atividades de tomadas de decisão relacionados ao georeferenciamento de empreendimentos públicos e privados. Em contrapartida, medir ativamente ponto a ponto da cidade para o levantamento desses dados é uma tarefa arduosa e cara. Câmeras de segurança já oferencem um banco de dados que contêm informações visuais de diversos pontos da cidades, sem entretanto, por motivos de legislação, possuírem qualquer informação de áudio. Esse trabalho tem por objetivo então de, utilizando-se de uma infraestrutura já implementada de câmeras de segurança, fazer a estimação do nível de pressão sonora em vídeos mudos a partir do treinamento de um modelo computacional feito sobre vídeo não-mudos, de forma a leventar um mapa de ruído sonoro em cidades.
 
 # Como rodar o código
 
