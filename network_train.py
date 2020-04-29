@@ -1,5 +1,6 @@
 import os                                   #
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
+#os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 from tensorflow import keras
 from keras.optimizers import Adam
@@ -36,9 +37,9 @@ def loadDataset():
 
     #Transform the loaded data to numpy arrays
     X_train = np.array(X_train).astype("uint8")
-    Y_train = np.array(Y_train).astype("uint8")
+    Y_train = np.array(Y_train).astype("float32")
     X_test = np.array(X_test).astype("uint8")
-    Y_test = np.array(Y_test).astype("uint8")
+    Y_test = np.array(Y_test).astype("float32")
 
     return X_train,Y_train,X_test,Y_test
 
@@ -72,12 +73,12 @@ if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == T
     print("using cached model")
     model = load_model()
 else:
-    model = networkModel(image_shape)   #model created by Leonardo Mazza
+    model = networkModel(image_shape)   #model created by Leonardo Mazza, modified by me
     save_model(model)
                                         #Adam optimizer
 opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
 
-model.compile(optimizer=opt, loss=mean_squared_error, metrics=['accuracy'])
+model.compile(optimizer=opt, loss=mean_squared_error) #, metrics=['accuracy'])  #We can not use accuracy as a metric in this model
 model.summary()                     #Show network model
 
 [
@@ -88,19 +89,20 @@ model.summary()                     #Show network model
 ] = loadDataset()                   #Load the dataset
 
                                     #Fit model
-#fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test))
+fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test))
 
 # construct the training image generator for data augmentation
 # This is made so as to help generalize the dataset
-dataset_augumentation = ImageDataGenerator(rotation_range=0,zoom_range=0,
-	width_shift_range=0, height_shift_range=0, shear_range=0,
-	horizontal_flip=False,fill_mode="nearest")
+# dataset_augumentation = ImageDataGenerator(rotation_range=0,zoom_range=0,
+# 	width_shift_range=0, height_shift_range=0, shear_range=0,
+# 	horizontal_flip=False,fill_mode="nearest")
 # train the network
-# I use the fit_generator method in order to not overload the RAM memory in the server, as the
-# model.fit statement has to load the full dataset in RAM.
-fit_history = model.fit_generator(dataset_augumentation.flow(X_train, Y_train, batch_size=BATCH_SIZE),
-	validation_data=(X_test, Y_test),steps_per_epoch=len(X_train),
-    epochs=NB_EPOCH)
+# //I use the fit_generator method in order to not overload the RAM memory in the server, as the
+# //model.fit statement has to load the full dataset in RAM.
+# This actually makes no sense here, because I already loaded the dataset into ram before
+# fit_history = model.fit_generator(dataset_augumentation.flow(X_train, Y_train, batch_size=BATCH_SIZE),
+#	validation_data=(X_test, Y_test),steps_per_epoch=len(X_train),
+#   epochs=NB_EPOCH)
 
 save_model(model)                   #Save the calculated model to disk
 save_weights(model)                 #Save the calculated weigths to disk

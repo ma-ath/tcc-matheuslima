@@ -11,7 +11,7 @@ from PIL import Image
 import re
 from matplotlib import pyplot as plt
 import pandas
-
+from random import randrange, seed
 
 def loadDataset():
     training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
@@ -35,9 +35,9 @@ def loadDataset():
 
     #Transform the loaded data to numpy arrays
     X_train = np.array(X_train).astype("uint8")
-    Y_train = np.array(Y_train).astype("uint8")
+    Y_train = np.array(Y_train).astype("float32")
     X_test = np.array(X_test).astype("uint8")
-    Y_test = np.array(Y_test).astype("uint8")
+    Y_test = np.array(Y_test).astype("float32")
 
     return X_train,Y_train,X_test,Y_test
 
@@ -70,7 +70,7 @@ print("Using Cached Model")
 model = load_model()
                                     #Model optimizer and compilation
 opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
-model.compile(optimizer=opt, loss=mean_squared_error, metrics=['accuracy'])
+model.compile(optimizer=opt, loss=mean_squared_error)#, metrics=['accuracy'])
 
 model.summary()                     #Show network model
 
@@ -83,6 +83,21 @@ model.summary()                     #Show network model
 
 score = model.evaluate(X_test, Y_test, verbose=2)
 print('Model\'s score: ', score)
+
+seed()
+
+for i in range(10):
+    image_index = randrange(0,X_test.shape[0],1)
+
+    X_predict = np.expand_dims(X_test[image_index],0)
+  
+    prediction = model.predict(X_predict)
+
+    print("Image:" + str(image_index) + '\n')
+    print("Prediction: " + str(prediction))
+    print("Real value: " + str(Y_test[image_index]))
+
+
 
 #img = Image.fromarray(X_train[10], 'RGB')
 #img.show()
