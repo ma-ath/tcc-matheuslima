@@ -13,7 +13,15 @@ from PIL import Image
 import re
 from matplotlib import pyplot as plt
 import pandas
+from include.telegram_logger import *
 
+PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
+BATCH_SIZE = 1
+NB_EPOCH = 1
+USING_CACHE = False
+
+image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
+lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
 
 def loadDataset():
     training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
@@ -60,15 +68,15 @@ def load_model():
     #model.load_weights(os.path.join('cache', 'model_weights.h5'))
     return model
 
-PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
-BATCH_SIZE = 1
-NB_EPOCH = 1
-USING_CACHE = False
+    def __init__(self):
+        super(LogstashFormatter, self).__init__()
 
-image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
-lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
+    def format(self, record):
+        t = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
-                                    #Check if the model is already in cache
+        return "<i>{datetime}</i><pre>\n{message}</pre>".format(message=record.msg, datetime=t)
+
+#Check if the model is already in cache
 if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == True:
     print("using cached model")
     model = load_model()
@@ -88,6 +96,7 @@ model.summary()                     #Show network model
     Y_test
 ] = loadDataset()                   #Load the dataset
 
+telegramSendMessage('Network training process started')
                                     #Fit model
 fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test))
 
@@ -112,3 +121,5 @@ fit_history = pandas.DataFrame(fit_history.history)
 
 with open('fit_history.csv', mode='w') as f:
     fit_history.to_csv(f)
+
+telegramSendMessage('Network training process ended successfully')

@@ -10,7 +10,7 @@ import cv2
 import os
 import re
 import pickle
-
+from include.telegram_logger import *
 
 # this constant indicates how much of the data will be used as train data
 TEST_DATA_RATIO = 0.75
@@ -19,6 +19,8 @@ PROCESSED_DATA_FOLDER = "processedData/"
 dataset_datapath = "./dataset/" #Datapath for the dataset
 dataset_raw = "./dataset/raw/"  #Path in which all raw video files are
 dataset_config_filename = "config"
+
+telegramSendMessage('dataset_build started processing')
 
 try:    #load the configuration file os the dataset
     with open(dataset_datapath+dataset_config_filename,"rb") as fp:
@@ -128,3 +130,5 @@ with open(PROCESSED_DATA_FOLDER+"config","wb") as fp:
     pickle.dump(processedData_config, fp)
 
 print("training and test data where processed and are ready to be used")
+
+telegramSendMessage('dataset_build ended successfully')

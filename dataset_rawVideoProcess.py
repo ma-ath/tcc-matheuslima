@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from math import floor, log
 import re
 import pickle
+from include.telegram_logger import *
 
 # Resizes the video for the 240Nx240 screen resolution
 output_resolution = "240x240"   #This string determines the output resolution of the resized video
@@ -79,6 +80,7 @@ except:     #new dataset, config file does not exist
 if not video_raw_datapath:
     print("Dataset is already up to date")
 
+telegramSendMessage('dataset_rawVideoProcess started processing')
 
 #extract frames and sound for each video
 for video_raw_name in video_raw_datapath:
@@ -166,3 +168,5 @@ for video_raw_name in video_raw_datapath:
 # Save the information of all videos on file 
 with open(dataset_datapath+"config","wb") as fp:
     pickle.dump(dataset_config, fp)
+
+telegramSendMessage('dataset_rawVideoProcess ended successfully')
