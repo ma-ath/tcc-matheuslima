@@ -4,13 +4,17 @@
 
 # Como rodar o código
 
-*1 - Ponha os vídeos "raw" na pasta dataset/raw
-*2 - Rode o arquivo dataset_rawVideoProcess.py
+1 - Ponha os vídeos "raw" na pasta dataset/raw
+
+2 - Rode o arquivo dataset_rawVideoProcess.py
        Esse arquivo irá extrair todos os frames e audio dos vídeos na pasta raw, além de calcular sua presão sonora.
-*3 - Rode o arquivo dataset_build.py
+
+3 - Rode o arquivo dataset_build.py
       Esse arquivo irá pegar todas as informações de audio e vídeo dos arquivos anteriormente processados, e montar um único dataset, no qual a rede irá ser treinada
-*4 - Agora você já pode treinar a rede, com o arquivo network_train.py
-*5 - Por fim, o arquivo network_evaluate.py irá avaliar o treinamento.
+
+4 - Agora você já pode treinar a rede, com o arquivo network_train.py
+
+5 - Por fim, o arquivo network_evaluate.py irá avaliar o treinamento.
 
 Todo o processo pode ser monitorado remotamente por meio de um bot de telegram, que envia logs definidos pelo programador a respeito de como anda o andamento do processo.
 
