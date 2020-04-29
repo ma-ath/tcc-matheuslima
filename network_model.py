@@ -22,7 +22,10 @@ def networkModel(image_shape):
     #   the fully connected layers present in the vgg16 by default are 
     #   not added to the model, as we are going to add our own FC layer
     #   for the classification task. This is made by setting include_top=False  
+    #
+    #   Also, this layer is not trainable
     convolutional_layer = VGG16(weights='imagenet', include_top=False,input_tensor=input_layer)
+    convolutional_layer.trainable = False
 
     #convolutional_layer_output = convolutional_layer(input_layer)
     #   We add to the model a GAP and a FC layer
