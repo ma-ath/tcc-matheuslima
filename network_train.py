@@ -14,6 +14,7 @@ import re
 from matplotlib import pyplot as plt
 import pandas
 from include.telegram_logger import *
+from include.auxiliaryFunctions import *
 
 PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
 BATCH_SIZE = 1
@@ -22,59 +23,6 @@ USING_CACHE = False
 
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
 lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
-
-def loadDataset():
-    training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
-    training_labels = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
-    testing_images = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
-    testing_labels = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
-
-    X_train = []
-    Y_train = []
-    X_test = []
-    Y_test = []
-
-    for image in training_images:
-        X_train.append(image.reshape(image_shape))
-    for label in training_labels:
-        Y_train.append(label)
-    for image in testing_images:
-        X_test.append(image.reshape(image_shape))
-    for label in testing_labels:
-        Y_test.append(label)
-
-    #Transform the loaded data to numpy arrays
-    X_train = np.array(X_train).astype("uint8")
-    Y_train = np.array(Y_train).astype("float32")
-    X_test = np.array(X_test).astype("uint8")
-    Y_test = np.array(Y_test).astype("float32")
-
-    return X_train,Y_train,X_test,Y_test
-
-def save_model(model):
-    json_string = model.to_json()
-    if not os.path.isdir('cache'):
-        os.mkdir('cache')
-    open(os.path.join('cache', 'architecture.json'), 'w').write(json_string)
-    #model.save_weights(os.path.join('cache', 'model_weights.h5'), overwrite=True)
-
-def save_weights(model):
-    if not os.path.isdir('cache'):
-        os.mkdir('cache')
-    model.save_weights(os.path.join('cache', 'model_weights.h5'), overwrite=True)
-
-def load_model():
-    model = model_from_json(open(os.path.join('cache', 'architecture.json')).read())
-    #model.load_weights(os.path.join('cache', 'model_weights.h5'))
-    return model
-
-    def __init__(self):
-        super(LogstashFormatter, self).__init__()
-
-    def format(self, record):
-        t = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-
-        return "<i>{datetime}</i><pre>\n{message}</pre>".format(message=record.msg, datetime=t)
 
 #Check if the model is already in cache
 if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == True:
@@ -94,7 +42,7 @@ model.summary()                     #Show network model
     Y_train,
     X_test,
     Y_test
-] = loadDataset()                   #Load the dataset
+] = loadDataset(PROCESSED_DATA_FOLDER,image_shape)                   #Load the dataset
 
 telegramSendMessage('Network training process started')
                                     #Fit model
