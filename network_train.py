@@ -7,6 +7,7 @@ from keras.optimizers import Adam
 from keras.losses import mean_squared_error
 from keras.models import model_from_json
 from keras_preprocessing.image import ImageDataGenerator
+from keras.callbacks import LearningRateScheduler, ModelCheckpoint
 from network_model import networkModel
 import numpy as np
 from PIL import Image
@@ -18,7 +19,7 @@ from include.auxiliaryFunctions import *
 
 PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
 BATCH_SIZE = 1
-NB_EPOCH = 1
+NB_EPOCH = 2
 USING_CACHE = False
 
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
@@ -31,6 +32,27 @@ if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == T
 else:
     model = networkModel(image_shape)   #model created by Leonardo Mazza, modified by me
     save_model(model)
+
+# This is the learning rate scheduler, it changes the learning rate of fit
+# depending in the current epoch
+def scheduler(epoch):
+    if epoch < 30:
+        return lr_list[0]
+    elif epoch < 50:
+        return lr_list[1]
+    else:
+        return lr_list[2]
+
+learning_schedule = LearningRateScheduler(scheduler)
+
+model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5',
+                                            monitor='val_loss',
+                                            verbose=2,save_best_only=True,
+                                            save_weights_only=False,
+                                            mode='auto')
+
+callback = [learning_schedule,model_checkpoint]
+
                                         #Adam optimizer
 opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
 
@@ -46,7 +68,7 @@ model.summary()                     #Show network model
 
 telegramSendMessage('Network training process started')
                                     #Fit model
-fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test))
+fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test),callbacks=callback)
 
 # construct the training image generator for data augmentation
 # This is made so as to help generalize the dataset

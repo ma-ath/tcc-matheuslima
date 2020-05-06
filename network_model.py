@@ -2,7 +2,7 @@ import keras
 from keras.applications.vgg16 import VGG16
 from keras.layers import GlobalAveragePooling2D, Dense, Input
 from keras.utils.vis_utils import plot_model
-from keras.models import Model
+from keras.models import Model, Sequential
 
 #############################################################################
 #                           Model Generation
@@ -23,20 +23,31 @@ def networkModel(image_shape):
     #   not added to the model, as we are going to add our own FC layer
     #   for the classification task. This is made by setting include_top=False  
     #
-    #   Also, this layer is not trainable
+    #   Also, this layer is not trainable. we freeze all convolutional layers with
+    #   the following for loop
+
     convolutional_layer = VGG16(weights='imagenet', include_top=False,input_tensor=input_layer)
-    convolutional_layer.trainable = False
+
+    model = Sequential()
+
+    for layer in convolutional_layer.layers[:]:
+        layer.trainable = False     #Freezes all layers in the vgg16
+        model.add(layer)
+
 
     #convolutional_layer_output = convolutional_layer(input_layer)
     #   We add to the model a GAP and a FC layer
-    GAP_layer = GlobalAveragePooling2D(data_format=None)(convolutional_layer.output)
-    FC_layer = Dense(128, activation='tanh', name='dense_128')(GAP_layer)
+    GAP_layer = GlobalAveragePooling2D(data_format=None)#(convolutional_layer.output)
+    model.add(GAP_layer)
+    FC_layer = Dense(128, activation='tanh', name='dense_128')#(GAP_layer)
+    model.add(FC_layer)
         #NOTE:
         #ORIGINALY, THE LAST OUTPUT LAYER IS MADE OF ONLY ONE SINGLE RELU NEURON. I
         #DECIDED TO PUT TWO OUTPUTS, ONE FOR EACH AUDIO CHANNEL
-    output_layer = Dense(2, activation='relu', name='dense_1')(FC_layer)
+    output_layer = Dense(2, activation='linear', name='dense_1')#(FC_layer)
+    model.add(output_layer)
     #   Network Model
     #   convolutional_layer -> GAP_layer -> FC_layer
-    model = Model(inputs=input_layer, outputs=output_layer)
+    # model = Model(inputs=input_layer, outputs=output_layer)
     #plot_model(model, to_file='vgg.png')
     return model
