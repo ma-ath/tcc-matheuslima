@@ -55,6 +55,30 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape):
 
     return X_train,Y_train,X_test,Y_test
 
+def loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape):
+    testing_images = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
+    testing_labels = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
+
+    X_test = []
+    Y_test = []
+
+    for image in testing_images:
+        X_test.append(image.reshape(image_shape))
+    for label in testing_labels:
+        Y_test.append(label)
+
+    #Transform the loaded data to numpy arrays
+    X_test = np.array(X_test).astype("float32")
+    Y_test = np.array(Y_test).astype("float32")
+
+    #Normalize the input image from 0-255 to 0-1
+    #I do it before loading the dataset because if done before, i would have to save the
+    #training file as float32, which takes considerably more space than a uint8 format
+
+    X_test = X_test / 255
+
+    return X_test,Y_test
+
 def save_model(model):
     json_string = model.to_json()
     if not os.path.isdir('cache'):
