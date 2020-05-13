@@ -19,6 +19,7 @@ import re
 from matplotlib import pyplot as plt
 import pandas
 from random import randrange, seed
+from keras.applications.vgg16 import preprocess_input
 
 def loadDataset(PROCESSED_DATA_FOLDER,image_shape):
     training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
@@ -46,12 +47,20 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape):
     X_test = np.array(X_test).astype("float32")
     Y_test = np.array(Y_test).astype("float32")
 
-    #Normalize the input image from 0-255 to 0-1
+    #Normalize the input image to have "0" mean and standart deviation of "1"
+    # We do this with the builtin keras function "preprocess_input()"
     #I do it before loading the dataset because if done before, i would have to save the
     #training file as float32, which takes considerably more space than a uint8 format
+    # The way I was doing it before was wrong
 
-    X_train = X_train / 255
-    X_test = X_test / 255
+    # Mode caffe is the exact same mode used to train the vgg16 dataset
+
+    X_train = preprocess_input(X_train, mode='caffe')
+    X_test = preprocess_input(X_test, mode='caffe')
+
+    #This is a temporary solution, i just delete one of the audio sources
+    Y_train = np.delete(Y_train, -1, axis=1)
+    Y_test = np.delete(Y_test, -1, axis=1)
 
     return X_train,Y_train,X_test,Y_test
 
@@ -71,11 +80,14 @@ def loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape):
     X_test = np.array(X_test).astype("float32")
     Y_test = np.array(Y_test).astype("float32")
 
-    #Normalize the input image from 0-255 to 0-1
+    #Normalize the input image for the vgg16 input
     #I do it before loading the dataset because if done before, i would have to save the
     #training file as float32, which takes considerably more space than a uint8 format
 
-    X_test = X_test / 255
+    X_test = preprocess_input(X_test, mode='caffe')
+
+    #Delete one of the audios channel
+    Y_test = np.delete(Y_test, -1, axis=1)
 
     return X_test,Y_test
 

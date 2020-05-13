@@ -39,15 +39,24 @@ def networkModel(image_shape):
     #   We add to the model a GAP and a FC layer
     GAP_layer = GlobalAveragePooling2D(data_format=None)#(convolutional_layer.output)
     model.add(GAP_layer)
-    FC_layer = Dense(128, activation='tanh', name='dense_128')#(GAP_layer)
-    model.add(FC_layer)
+    #FC_layer = Dense(128, activation='tanh', name='dense_128')#(GAP_layer)
+    #model.add(FC_layer)
         #NOTE:
         #ORIGINALY, THE LAST OUTPUT LAYER IS MADE OF ONLY ONE SINGLE RELU NEURON. I
         #DECIDED TO PUT TWO OUTPUTS, ONE FOR EACH AUDIO CHANNEL
-    output_layer = Dense(2, activation='linear', name='dense_1')#(FC_layer)
+    output_layer = Dense(1, activation='linear', name='dense_1')#(FC_layer)
     model.add(output_layer)
     #   Network Model
     #   convolutional_layer -> GAP_layer -> FC_layer
     # model = Model(inputs=input_layer, outputs=output_layer)
     #plot_model(model, to_file='vgg.png')
     return model
+
+if __name__ == "__main__":
+    from keras.optimizers import Adam
+    from keras.losses import mean_squared_error
+    image_shape = (240,240,3)
+    opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
+    model = networkModel(image_shape)   #model created by Leonardo Mazza, modified by me
+    model.compile(optimizer=opt, loss=mean_squared_error)#, metrics=['accuracy'])
+    model.summary()                     #Show network model

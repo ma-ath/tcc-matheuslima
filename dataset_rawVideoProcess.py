@@ -233,8 +233,8 @@ for video_test_raw_name in video_test_raw_datapath:
             partialSumLeft += (1/M)*((samples[j+i*M,0])**2)
             partialSumRight += (1/M)*((samples[j+i*M,1])**2)
             pass
-        St[i,0] = log10(partialSumLeft)
-        St[i,1] = log10(partialSumRight)
+        St[i,0] = log(partialSumLeft)
+        St[i,1] = log(partialSumRight)
         pass
 
     # save numpy array as .npy file
