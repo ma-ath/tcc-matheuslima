@@ -1,6 +1,6 @@
 import keras
 from keras.applications.vgg16 import VGG16
-from keras.layers import GlobalAveragePooling2D, Dense, Input
+from keras.layers import GlobalAveragePooling2D, Dense, Input, Flatten
 from keras.utils.vis_utils import plot_model
 from keras.models import Model, Sequential
 
@@ -38,9 +38,10 @@ def networkModel(image_shape):
     #convolutional_layer_output = convolutional_layer(input_layer)
     #   We add to the model a GAP and a FC layer
     GAP_layer = GlobalAveragePooling2D(data_format=None)#(convolutional_layer.output)
-    model.add(GAP_layer)
-    #FC_layer = Dense(128, activation='tanh', name='dense_128')#(GAP_layer)
-    #model.add(FC_layer)
+    #model.add(GAP_layer)
+    model.add(Flatten())
+    FC_layer = Dense(128, activation='linear', name='dense_128')#(GAP_layer)
+    model.add(FC_layer)
         #NOTE:
         #ORIGINALY, THE LAST OUTPUT LAYER IS MADE OF ONLY ONE SINGLE RELU NEURON. I
         #DECIDED TO PUT TWO OUTPUTS, ONE FOR EACH AUDIO CHANNEL
