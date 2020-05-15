@@ -3,7 +3,7 @@ import os                                   #
 
 from tensorflow import keras
 from keras.optimizers import Adam
-from keras.losses import mean_squared_error
+from keras.losses import mean_squared_error, mean_absolute_error
 from keras.models import model_from_json
 from network_model import networkModel
 import numpy as np
