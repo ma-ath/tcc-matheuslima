@@ -21,6 +21,46 @@ import pandas
 from random import randrange, seed
 from keras.applications.vgg16 import preprocess_input
 
+def preprocess_image(image_array):
+    mean = np.mean(image_array,axis=(0,1,2))
+    std = np.std(image_array,axis=(0,1,2))
+
+    image_array[:, :, :, 0] -= mean[0]
+    image_array[:, :, :, 1] -= mean[1]
+    image_array[:, :, :, 2] -= mean[2]
+
+    image_array[:, :, :, 0] /= std[0]
+    image_array[:, :, :, 1] /= std[1]
+    image_array[:, :, :, 2] /= std[2]
+
+    mean2 = np.mean(image_array,axis=(0,1,2))
+    std2 = np.std(image_array,axis=(0,1,2))
+
+    print("Mean before preprocessin: "+str(mean))
+    print("Standart deviation before preprocessing: "+str(std))
+    print("Mean after preprocessin: "+str(mean2))
+    print("Standart deviation after preprocessing: "+str(std2))
+
+    return image_array
+
+def preprocess_labels(label_array):
+    mean = np.mean(label_array,axis=0)
+    std = np.std(label_array,axis=0)
+
+    label_array[:] -= mean
+    
+    label_array[:] /= std
+    
+    mean2 = np.mean(label_array,axis=0)
+    std2 = np.std(label_array,axis=0)
+
+    print("Mean before preprocessin: "+str(mean))
+    print("Standart deviation before preprocessing: "+str(std))
+    print("Mean after preprocessin: "+str(mean2))
+    print("Standart deviation after preprocessing: "+str(std2))
+
+    return label_array, mean, std
+
 def loadDataset(PROCESSED_DATA_FOLDER,image_shape):
     training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
     training_labels = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
@@ -54,9 +94,10 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape):
     # The way I was doing it before was wrong
 
     # Mode caffe is the exact same mode used to train the vgg16 dataset
+    # Instead of this, we preprocess the inputs in a diferent way
 
-    X_train = preprocess_input(X_train, mode='caffe')
-    X_test = preprocess_input(X_test, mode='caffe')
+    X_train = preprocess_image(X_train)
+    X_test = preprocess_image(X_test)
 
     #This is a temporary solution, i just delete one of the audio sources
     Y_train = np.delete(Y_train, -1, axis=1)
@@ -84,7 +125,7 @@ def loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape):
     #I do it before loading the dataset because if done before, i would have to save the
     #training file as float32, which takes considerably more space than a uint8 format
 
-    X_test = preprocess_input(X_test, mode='caffe')
+    X_test = preprocess_image(X_test)
 
     #Delete one of the audios channel
     Y_test = np.delete(Y_test, -1, axis=1)
@@ -144,3 +185,17 @@ def plotAudio(FSample,samples,M,St):
     plt.show()
     pass
 
+def plotAudioPowerWithPrediction(testSamples,predictedSamples):
+    plt.figure("Audio Power")
+
+    audio_length = testSamples.shape[0]
+    time = np.linspace(0., 1/audio_length ,audio_length)
+    plt.plot(time, testSamples, label="Test Samples")
+    plt.plot(time, predictedSamples, label="Predicted Samples")
+    plt.legend()
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+    plt.title("Audio timeline")
+
+    plt.show()
+    pass

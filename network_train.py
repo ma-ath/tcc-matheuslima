@@ -45,7 +45,7 @@ def scheduler(epoch):
 
 learning_schedule = LearningRateScheduler(scheduler)
 
-model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5',
+model_checkpoint = ModelCheckpoint('./cache/model_checkpoint.hdf5',
                                             monitor='val_loss',
                                             verbose=2,save_best_only=True,
                                             save_weights_only=False,
@@ -54,9 +54,9 @@ model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5',
 callback = [learning_schedule,model_checkpoint]
 
                                         #Adam optimizer
-opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
+#opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
 
-model.compile(optimizer=opt, loss=mean_squared_error) #, metrics=['accuracy'])  #We can not use accuracy as a metric in this model
+model.compile(optimizer='adam', loss=mean_squared_error) #, metrics=['accuracy'])  #We can not use accuracy as a metric in this model
 model.summary()                     #Show network model
 
 [
@@ -65,6 +65,10 @@ model.summary()                     #Show network model
     X_test,
     Y_test
 ] = loadDataset(PROCESSED_DATA_FOLDER,image_shape)                   #Load the dataset
+
+# print("Processando labels!!!")
+# Y_train, mean1, std1 = preprocess_labels(Y_train)
+# Y_test, mean2, std2 = preprocess_labels(Y_test)
 
 telegramSendMessage('Network training process started')
                                     #Fit model
@@ -80,7 +84,7 @@ fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,ve
 # //model.fit statement has to load the full dataset in RAM.
 # This actually makes no sense here, because I already loaded the dataset into ram before
 # fit_history = model.fit_generator(dataset_augumentation.flow(X_train, Y_train, batch_size=BATCH_SIZE),
-#	validation_data=(X_test, Y_test),steps_per_epoch=len(X_train),
+# validation_data=(X_test, Y_test),steps_per_epoch=len(X_train),
 #   epochs=NB_EPOCH)
 
 save_model(model)                   #Save the calculated model to disk
