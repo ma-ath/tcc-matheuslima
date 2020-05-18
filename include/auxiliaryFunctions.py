@@ -21,9 +21,19 @@ import pandas
 from random import randrange, seed
 from keras.applications.vgg16 import preprocess_input
 
-def preprocess_image(image_array):
-    mean = np.mean(image_array,axis=(0,1,2))
-    std = np.std(image_array,axis=(0,1,2))
+def preprocess_image(image_array, usecache=False,train_or_test='train'):
+    # We only need to calculate those values if we are dealing with a new dataset. So to speedup things, we can use the precalculated mean and std for train and test datasets
+    if not usecache:
+        mean = np.mean(image_array,axis=(0,1,2))
+        std = np.std(image_array,axis=(0,1,2))
+    elif train_or_test == 'train':
+        mean = [3.883008, 3.883008, 3.883008]
+        std = [31.528559, 31.528559, 31.528559]
+    elif train_or_test == 'test':
+        mean = [4.2647796, 4.2647796, 4.2647796]
+        std = [33.04215, 33.04215, 33.04215]
+    else:
+        raise ValueError
 
     image_array[:, :, :, 0] -= mean[0]
     image_array[:, :, :, 1] -= mean[1]
@@ -96,8 +106,13 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape):
     # Mode caffe is the exact same mode used to train the vgg16 dataset
     # Instead of this, we preprocess the inputs in a diferent way
 
+    #The following lines are uncommented when on server, for fastter preprocessing
+    #X_train = preprocess_image(X_train,usecache=True,train_of_test='train')
+    #X_test = preprocess_image(X_test,usecache=True,train_of_test='test')
+
     X_train = preprocess_image(X_train)
     X_test = preprocess_image(X_test)
+
 
     #This is a temporary solution, i just delete one of the audio sources
     Y_train = np.delete(Y_train, -1, axis=1)
