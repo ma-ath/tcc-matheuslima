@@ -38,8 +38,8 @@ def networkModel(image_shape):
     #convolutional_layer_output = convolutional_layer(input_layer)
     #   We add to the model a GAP and a FC layer
     GAP_layer = GlobalAveragePooling2D(data_format=None)#(convolutional_layer.output)
-    #model.add(GAP_layer)
-    model.add(Flatten())
+    model.add(GAP_layer)
+    # model.add(Flatten())
     FC_layer = Dense(128, activation='linear', name='dense_128')#(GAP_layer)
     model.add(FC_layer)
         #NOTE:

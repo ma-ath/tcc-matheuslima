@@ -18,6 +18,7 @@ PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed imag
 BATCH_SIZE = 1
 NB_EPOCH = 1
 USING_CACHE = False
+PLOT_SIZE = 92
 
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
 lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
@@ -41,23 +42,20 @@ model.summary()                     #Show network model
     Y_test
 ] = loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape)                   #Load the dataset
 
-score = model.evaluate(X_test, Y_test, verbose=1)
-print('Model\'s score: ', score)
+Y_predicted = []
 
-seed()
-
-for i in range(10):
-    image_index = randrange(0,X_test.shape[0],1)
-
-    X_predict = np.expand_dims(X_test[image_index],0)
+# Prepare a predictionSamples vector, in order to plot it
+for i in range(PLOT_SIZE):
+    X_predict = np.expand_dims(X_test[i],0)
   
     prediction = model.predict(X_predict)
 
-    print("Image:" + str(image_index) + '\n')
-    print("Prediction: " + str(prediction))
-    print("Real value: " + str(Y_test[image_index]))
+    Y_predicted.append(prediction)
+
+Y_predicted = np.array(Y_predicted).astype("float32")
+Y_predicted = np.squeeze(Y_predicted, axis=(2))
 
 
+# Y_test,a,b = preprocess_labels(Y_test)
 
-#    img = Image.fromarray(restore_original_image_from_array(X_test[i]), 'RGB')
-#    img.show()
+plotAudioPowerWithPrediction(Y_test[0:PLOT_SIZE],Y_predicted)
