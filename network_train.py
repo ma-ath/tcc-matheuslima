@@ -20,18 +20,11 @@ from include.auxiliaryFunctions import *
 PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
 BATCH_SIZE = 1
 NB_EPOCH = 5
-USING_CACHE = False
 
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
 lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
 
-#Check if the model is already in cache
-if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == True:
-    print("using cached model")
-    model = load_model()
-else:
-    model = networkModel(image_shape)   #model created by Leonardo Mazza, modified by me
-    save_model(model)
+model = networkModel(image_shape)   #model created by Leonardo Mazza, coded by me
 
 # This is the learning rate scheduler, it changes the learning rate of fit
 # depending in the current epoch
@@ -93,7 +86,7 @@ save_weights(model)                 #Save the calculated weigths to disk
                                     #Save the fitting history to disk
 fit_history = pandas.DataFrame(fit_history.history)
 
-with open('fit_history.csv', mode='w') as f:
+with open('cache/fit_history.csv', mode='w') as f:
     fit_history.to_csv(f)
 
 telegramSendMessage('Network training process ended successfully')

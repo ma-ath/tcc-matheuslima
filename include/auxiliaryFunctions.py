@@ -98,21 +98,12 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape):
     Y_test = np.array(Y_test).astype("float32")
 
     #Normalize the input image to have "0" mean and standart deviation of "1"
-    # We do this with the builtin keras function "preprocess_input()"
-    #I do it before loading the dataset because if done before, i would have to save the
-    #training file as float32, which takes considerably more space than a uint8 format
-    # The way I was doing it before was wrong
+    # I tried to do it using the builtin keras function "preprocess_input()", but doing it by hand has better results
+    # I do it before loading the dataset because if done before, i would have to save the
+    # training file as float32, which takes considerably more space than a uint8 format
 
-    # Mode caffe is the exact same mode used to train the vgg16 dataset
-    # Instead of this, we preprocess the inputs in a diferent way
-
-    #The following lines are uncommented when on server, for fastter preprocessing
-    #X_train = preprocess_image(X_train,usecache=True,train_of_test='train')
-    #X_test = preprocess_image(X_test,usecache=True,train_of_test='test')
-
-    X_train = preprocess_image(X_train)
-    X_test = preprocess_image(X_test)
-
+    X_train = preprocess_image(X_train,usecache=True)
+    X_test = preprocess_image(X_test,usecache=True)
 
     #This is a temporary solution, i just delete one of the audio sources
     Y_train = np.delete(Y_train, -1, axis=1)
@@ -140,7 +131,7 @@ def loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape):
     #I do it before loading the dataset because if done before, i would have to save the
     #training file as float32, which takes considerably more space than a uint8 format
 
-    X_test = preprocess_image(X_test)
+    X_test = preprocess_image(X_test,usecache=True)
 
     #Delete one of the audios channel
     Y_test = np.delete(Y_test, -1, axis=1)
@@ -152,7 +143,6 @@ def save_model(model):
     if not os.path.isdir('cache'):
         os.mkdir('cache')
     open(os.path.join('cache', 'architecture.json'), 'w').write(json_string)
-    #model.save_weights(os.path.join('cache', 'model_weights.h5'), overwrite=True)
 
 def save_weights(model):
     if not os.path.isdir('cache'):

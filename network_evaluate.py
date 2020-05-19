@@ -14,25 +14,23 @@ import pandas
 from random import randrange, seed
 from include.auxiliaryFunctions import *
 
-PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
-BATCH_SIZE = 1
-NB_EPOCH = 1
-USING_CACHE = False
+"""
+This is a server-only script! It process some data to be visualized in the visualize_prediction script, a client only one.
+"""
 
+PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
-lr_list = [0.001, 0.0003, 9e-05]    #loss rate for the training process (Adam optimizer)
+PLOT_SIZE = 2000
 
                                     #Check if the model is already in cache
-#Check if the model is already in cache
-if os.path.isfile(os.path.join('cache', 'architecture.json')) & USING_CACHE == True:
-    print("using cached model")
+if os.path.isfile(os.path.join('cache', 'architecture.json')) & os.path.isfile(os.path.join('cache', 'model_weights.h5')):
+    print("[INFO] Loading cached model ...")
     model = load_model()
 else:
-    model = networkModel(image_shape)   #model created by Leonardo Mazza, modified by me
-    save_model(model)
-                                    #Model optimizer and compilation
-#opt = Adam(learning_rate=0.001, epsilon=9e-05, amsgrad=False)
-model.compile(optimizer='adam', loss=mean_squared_error)#, metrics=['accuracy'])
+    print("[Error] There is no cached model to load. You should run network_train before trying to evaluate")
+    raise EnvironmentError
+
+model.compile(optimizer='adam', loss=mean_squared_error)
 
 model.summary()                     #Show network model
 
@@ -41,11 +39,12 @@ model.summary()                     #Show network model
     Y_test
 ] = loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape)                   #Load the dataset
 
-score = model.evaluate(X_test, Y_test, verbose=1)
-print('Model\'s score: ', score)
+score = model.evaluate(X_test, Y_test, verbose=0)
+print('[INFO] Model\'s score: ', score)
 
 seed()
 
+print("[INFO] Showing real and predicted value for some random data")
 for i in range(10):
     image_index = randrange(0,X_test.shape[0],1)
 
@@ -53,11 +52,29 @@ for i in range(10):
   
     prediction = model.predict(X_predict)
 
-    print("Image:" + str(image_index) + '\n')
+    print("Image:" + str(image_index))
     print("Prediction: " + str(prediction))
     print("Real value: " + str(Y_test[image_index]))
 
+print("[INFO] Predicting data for a full array")
 
+Y_predicted = []
 
-#    img = Image.fromarray(restore_original_image_from_array(X_test[i]), 'RGB')
-#    img.show()
+# Prepare a predictionSamples vector, in order to plot it
+for i in range(PLOT_SIZE):
+    X_predict = np.expand_dims(X_test[i],0)
+  
+    prediction = model.predict(X_predict)
+
+    Y_predicted.append(prediction)
+
+Y_predicted = np.array(Y_predicted).astype("float32")
+Y_predicted = np.squeeze(Y_predicted, axis=(2))
+
+if not os.path.isdir('visualization'):
+        os.mkdir('visualization')
+"""
+Save those data to be vizualized in the client script "visualize_prediction" 
+"""
+np.save("visualization/visualization-real-lbl.npy",Y_test[0:PLOT_SIZE])
+np.save("visualization/visualization-prediction-lbl.npy",Y_predicted)
