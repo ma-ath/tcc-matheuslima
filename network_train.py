@@ -19,7 +19,7 @@ from include.auxiliaryFunctions import *
 
 PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
 BATCH_SIZE = 1
-NB_EPOCH = 5
+NB_EPOCH = 20
 
 image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
 timeSteps = 10
