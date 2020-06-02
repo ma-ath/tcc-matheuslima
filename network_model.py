@@ -81,7 +81,6 @@ def networkModel_leomazza(image_shape):
     # model.add(Flatten())
     FC_layer = Dense(128, activation='linear', name='dense_128')#(GAP_layer)
     model_layer.add(FC_layer)
-
     output_layer = Dense(1, activation='linear', name='dense_1')#(FC_layer)
     model_layer.add(output_layer)
 
