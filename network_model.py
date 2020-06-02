@@ -19,13 +19,16 @@ def networkModel(image_shape, timeSteps, convLstm_filters=32):
                         kernel_size=(3, 3),
                         filters=convLstm_filters,
                         padding='valid',
-                        data_format='channels_last')(vgg16_time)
+                        data_format='channels_last',
+                        activation='relu')(vgg16_time)
     
     GAP = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(rcnn)
-    
-    FC = TimeDistributed(Dense(128, activation='linear', name='dense_128'),name='FC')(GAP)
 
-    outputs = TimeDistributed(Dense(1, activation='linear', name='dense_1'),name='outputs')(FC)
+    FLAT = Flatten()(GAP)
+    
+    FC = Dense(128, activation='linear', name='dense_128')(FLAT)
+
+    outputs = Dense(timeSteps, activation='linear', name='dense_1')(FC)
 
     model = Model(inputs=inputs, outputs=outputs)
 
