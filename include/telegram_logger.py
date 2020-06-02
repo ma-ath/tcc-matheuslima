@@ -28,7 +28,7 @@ class LogstashFormatter(Formatter):
 #
 TELEGRAM_TOKEN = '1087006885:AAGdIGlENuGhOL4qX6oWzna2YaDMP1dxsGs'   #Telegram bot token
 TELEGRAM_CHAT_ID = '116465686'              #My telegram user id
-TELEGRAM_LOG_ACTIVATE = False                #A variable to turn on/off notifications
+TELEGRAM_LOG_ACTIVATE = True                #A variable to turn on/off notifications
 
 #Setup the telegram logger. This way, everytime we want to send something to the smartphone,
 # we only need to call for logger.error("<message>")
