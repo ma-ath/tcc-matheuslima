@@ -55,12 +55,17 @@ model.summary()                     #Show network model
 
 telegramSendMessage('Loading dataset')
 
-[
-    X_train,
-    Y_train,
-    X_test,
-    Y_test
-] = loadDataset(PROCESSED_DATA_FOLDER,image_shape,timeSteps=timeSteps,lstm=True)                   #Load the dataset
+#[
+#    X_train,
+#    Y_train,
+#    X_test,
+#    Y_test
+#] = loadDataset(PROCESSED_DATA_FOLDER,image_shape,timeSteps=timeSteps,lstm=True)                   #Load the dataset
+
+X_train = np.load("postProcessedData/X_train.npy")
+Y_train = np.load("postProcessedData/Y_train.npy")
+X_test = np.load("postProcessedData/X_test.npy")
+Y_test = np.load("postProcessedData/Y_test.npy")
 
 # print("Processando labels!!!")
 # Y_train, mean1, std1 = preprocess_labels(Y_train)
