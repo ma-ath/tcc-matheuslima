@@ -53,6 +53,8 @@ callback = [learning_schedule,model_checkpoint]
 model.compile(optimizer='adam', loss=mean_squared_error) #, metrics=['accuracy'])  #We can not use accuracy as a metric in this model
 model.summary()                     #Show network model
 
+telegramSendMessage('Loading dataset')
+
 [
     X_train,
     Y_train,
@@ -64,7 +66,7 @@ model.summary()                     #Show network model
 # Y_train, mean1, std1 = preprocess_labels(Y_train)
 # Y_test, mean2, std2 = preprocess_labels(Y_test)
 
-telegramSendMessage('Network training process started')
+telegramSendMessage('Dataset loading, network training process started')
                                     #Fit model
 fit_history = model.fit(X_train,Y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=2,validation_data=(X_test, Y_test),callbacks=callback)
 
