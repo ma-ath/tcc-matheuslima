@@ -116,7 +116,7 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape, timeSteps=100,lstm=False):
     throw_away_images = number_images - samples*timeSteps   #number of images i'll have to throw away (trunc) in order to reshape the 4d tensor in the required 5d tensor
 
     X_new_shape = (samples,timeSteps,)+image_shape    #new input format
-    Y_new_shape = (samples,timeSteps)               #new output format
+    Y_new_shape = (samples,timeSteps,1)               #new output format
 
     X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
     Y_train = np.delete(Y_train,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
@@ -130,7 +130,7 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape, timeSteps=100,lstm=False):
     throw_away_images = number_images - samples*timeSteps   #number of images i'll have to throw away (trunc) in order to reshape the 4d tensor in the required 5d tensor
 
     X_new_shape = (samples,timeSteps,)+image_shape    #new input format
-    Y_new_shape = (samples,timeSteps)               #new output format
+    Y_new_shape = (samples,timeSteps,1)               #new output format
 
     X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
     Y_test = np.delete(Y_test,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
