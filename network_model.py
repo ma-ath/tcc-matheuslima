@@ -24,23 +24,21 @@ def networkModel(image_shape, timeSteps, convLstm_filters=32):
     
     GAP = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(rcnn)
 
-    FLAT = Flatten()(GAP)
-    
-    FC = Dense(128, activation='linear', name='dense_128')(FLAT)
+    FC = TimeDistributed(Dense(128, activation='relu', name='dense_128'),name='FC_nonlinear')(GAP) #<---- relu
 
-    outputs = Dense(timeSteps, activation='linear', name='dense_1')(FC)
+    outputs = TimeDistributed(Dense(1, activation='linear', name='dense_1'),name='FC_linear')(FC)
 
     model = Model(inputs=inputs, outputs=outputs)
 
     return model
-
+    #Colocar uma time distributed na camada FC
 
 if __name__ == "__main__":
     from keras.optimizers import Adam
     from keras.losses import mean_squared_error
     image_shape = (240,240,3)
 
-    model = networkModel(image_shape,30)
+    model = networkModel(image_shape,30,convLstm_filters=100)
     model.compile(optimizer='adam', loss=mean_squared_error)
     model.summary()                     #Show network model
 
