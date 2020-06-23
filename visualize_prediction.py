@@ -13,8 +13,7 @@ import pandas
 from random import randrange, seed
 from include.auxiliaryFunctions import *
 from keras.utils.vis_utils import plot_model
-
-image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
+from include.global_constants import *
 
                                     #Check if the model is already in cache
 if os.path.isfile(os.path.join('cache', 'architecture.json')) & os.path.isfile(os.path.join('cache', 'model_weights.h5')):

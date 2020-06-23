@@ -8,18 +8,7 @@ import os
 import re
 import pickle
 from include.telegram_logger import *
-
-# this constant indicates how much of the data will be used as train data
-TEST_DATA_RATIO = 0.75
-AUDIO_DATA_NAME = "audioPower.npy"
-PROCESSED_DATA_FOLDER = "processedData/"
-dataset_datapath = "./dataset/" #Datapath for the dataset
-dataset_train_datapath = "./dataset/train/"  #Path for train dataset
-dataset_test_datapath = "./dataset/test/"    #Path for test dataset   
-dataset_raw = "./dataset/raw/"  #Path in which all raw video files are
-dataset_config_filename = "config"
-dataset_config_train_filename = "config-train"
-dataset_config_test_filename = "config-test"
+from include.global_constants import *
 
 telegramSendMessage('dataset_build started processing')
 

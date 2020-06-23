@@ -1,11 +1,12 @@
 
 import keras
 from keras.applications.vgg16 import VGG16
-from keras.layers import Conv3D, GlobalAveragePooling2D, Dense, Input, Flatten, ConvLSTM2D, LSTM, TimeDistributed, BatchNormalization
+from keras.layers import Conv3D, GlobalAveragePooling2D, GlobalMaxPooling2D,Dense, Input, Flatten, ConvLSTM2D, LSTM, TimeDistributed, BatchNormalization
 from keras.utils.vis_utils import plot_model
 from keras.models import Model, Sequential
+from include.global_constants import *
 
-def networkModel(image_shape, timeSteps, convLstm_filters=32):
+def networkModel(network):
 
     inputs = Input(shape=(timeSteps,)+image_shape)
 
@@ -15,16 +16,26 @@ def networkModel(image_shape, timeSteps, convLstm_filters=32):
     
     vgg16_time = TimeDistributed(convolutional_layer,name='VGG16')(inputs)
 
-    rcnn = ConvLSTM2D(return_sequences = True,
-                        kernel_size=(3, 3),
-                        filters=convLstm_filters,
+    if network['rcnn_type'] == 'convlstm':
+        rcnn = ConvLSTM2D(return_sequences = True,
+                        kernel_size=network['rcnn_kernel'],
+                        filters=network['rcnn_filters'],
                         padding='valid',
                         data_format='channels_last',
-                        activation='relu')(vgg16_time)
+                        activation=network['rcnn_activation'])(vgg16_time)
+    elif network['rcnn_type'] == 'lstm':
+        print('エラーが発生しました＞LSTMはまだ実施されていません')
+        raise
     
-    GAP = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(rcnn)
+    if network['pooling'] == 'GAP':
+        POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(rcnn)
+    elif network['pooling'] == 'GMP':
+        POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(rcnn)
 
-    FC = TimeDistributed(Dense(128, activation='relu', name='dense_128'),name='FC_nonlinear')(GAP) #<---- relu
+    FC = TimeDistributed(Dense(network['fc_nlinear_size'],
+                                activation=network['fc_nlinear_activation'],
+                                name='dense_nlinear'),
+                                name='FC_nonlinear')(POOLING)
 
     outputs = TimeDistributed(Dense(1, activation='linear', name='dense_1'),name='FC_linear')(FC)
 
@@ -32,15 +43,35 @@ def networkModel(image_shape, timeSteps, convLstm_filters=32):
 
     return model
     #Colocar uma time distributed na camada FC
-
+    #Olhar a ResNet/colocar um bypass direto da entrada pra saída da lstm
+    #Fazer a LSTM funcionar
+    
 if __name__ == "__main__":
     from keras.optimizers import Adam
     from keras.losses import mean_squared_error
-    image_shape = (240,240,3)
+    from networks import *
 
-    model = networkModel(image_shape,30,convLstm_filters=100)
-    model.compile(optimizer='adam', loss=mean_squared_error)
-    model.summary()                     #Show network model
+    for network in networks:
+
+        model = networkModel(network)
+
+        #Training Optimizer
+        opt = network['optimizer']
+
+        #Loss function to minimize
+        if network['loss_function'] == 'mse':
+            loss_function = mean_squared_error
+        else:
+            print("[Warning]: loss function does not suported. Using default (mse)")
+            loss_function = mean_squared_error
+
+        model.compile(optimizer=opt, loss=loss_function) #, metrics=['accuracy'])  #We can not use accuracy as a metric in this model
+
+        #Show network model in terminal
+        print('Fitting the following model:')
+        for key, value in network.items():
+            print(key, ' : ', value)
+        model.summary()
 
 
 def networkModel_leomazza(image_shape):
