@@ -13,15 +13,11 @@ from matplotlib import pyplot as plt
 import pandas
 from random import randrange, seed
 from include.auxiliaryFunctions import *
+from include.global_constants import *
 
 """
 This is a server-only script! It process some data to be visualized in the visualize_prediction script, a client only one.
 """
-
-PROCESSED_DATA_FOLDER = "processedData/"    #folder where all pre-processed images are located
-image_shape = (240,240,3)           #input layer receives an RGB 240x240 image
-#PLOT_SIZE = 2000
-timeSteps = 10
 
                                     #Check if the model is already in cache
 if os.path.isfile(os.path.join('cache', 'architecture.json')) & os.path.isfile(os.path.join('cache', 'model_weights.h5')):

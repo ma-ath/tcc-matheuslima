@@ -1,5 +1,6 @@
 from include.auxiliaryFunctions import *
 from include.telegram_logger import *
+from include.global_constants import *
 """
 Esse script simplesmente carrega o ddataset em memória e salva em disco
 com LSTM = True
@@ -10,10 +11,6 @@ try:
 except OSError:
 	print ('Error: Creating directory')
 	exit ()
-
-PROCESSED_DATA_FOLDER = "processedData/"
-image_shape = (240,240,3)
-timeSteps = 10
 
 telegramSendMessage('Loading dataset')
 
