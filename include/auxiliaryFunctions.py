@@ -184,20 +184,20 @@ def loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape,timeSteps=100,lstm=Fa
 
     return X_test,Y_test
 
-def save_model(model):
+def save_model(model,folder_path):
     json_string = model.to_json()
-    if not os.path.isdir('cache'):
-        os.mkdir('cache')
-    open(os.path.join('cache', 'architecture.json'), 'w').write(json_string)
+    if not os.path.isdir('cache/'+folder_path):
+        os.mkdir('cache/'+folder_path)
+    open(os.path.join('cache/'+folder_path, 'architecture.json'), 'w').write(json_string)
 
-def save_weights(model):
-    if not os.path.isdir('cache'):
-        os.mkdir('cache')
-    model.save_weights(os.path.join('cache', 'model_weights.h5'), overwrite=True)
+def save_weights(model,folder_path):
+    if not os.path.isdir('cache/'+folder_path):
+        os.mkdir('cache/'+folder_path)
+    model.save_weights(os.path.join('cache/'+folder_path, 'model_weights.h5'), overwrite=True)
 
-def load_model():
-    model = model_from_json(open(os.path.join('cache', 'architecture.json')).read())
-    model.load_weights(os.path.join('cache', 'model_weights.h5'))
+def load_model(folder_path):
+    model = model_from_json(open(os.path.join('cache/'+folder_path, 'architecture.json')).read())
+    model.load_weights(os.path.join('cache/'+folder_path, 'model_weights.h5'))
     return model
 
 #Function that returns if a program is installed at the machine

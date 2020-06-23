@@ -49,6 +49,7 @@ def networkModel(network):
 if __name__ == "__main__":
     from keras.optimizers import Adam
     from keras.losses import mean_squared_error
+    from keras.utils.vis_utils import plot_model
     from networks import *
 
     for network in networks:
@@ -72,6 +73,8 @@ if __name__ == "__main__":
         for key, value in network.items():
             print(key, ' : ', value)
         model.summary()
+        plot_model(model,show_shapes=True, show_layer_names=True)
+        
 
 
 def networkModel_leomazza(image_shape):
