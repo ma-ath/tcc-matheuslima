@@ -23,7 +23,7 @@ networks = [dict() for i in range(2)]
 networks[0]['model_name'] = 'model_1'
 networks[0]['learning_schedule'] = [0.001, 0.0003, 9e-05]
 networks[0]['batch_size'] = 1
-networks[0]['number_of_epochs'] = 1
+networks[0]['number_of_epochs'] = 3
 
 networks[0]['optimizer'] = 'adam'
 networks[0]['rcnn_type'] = 'convlstm'
@@ -40,7 +40,7 @@ networks[0]['loss_function'] = 'mse'
 networks[1]['model_name'] = 'model_2'
 networks[1]['learning_schedule'] = [0.001, 0.0003, 9e-05]
 networks[1]['batch_size'] = 1
-networks[1]['number_of_epochs'] = 1
+networks[1]['number_of_epochs'] = 3
 
 networks[1]['optimizer'] = 'adam'
 networks[1]['rcnn_type'] = 'convlstm'

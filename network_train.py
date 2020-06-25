@@ -125,12 +125,54 @@ for network in networks:
     save_weights(model,network['model_name'])                 #Save the calculated weigths to disk
 
     #Save the fitting history to disk
-    fit_history = pandas.DataFrame(fit_history.history)
+    fit_history_df = pandas.DataFrame(fit_history.history)
 
     with open('cache/'+network['model_name']+'/fit_history.csv', mode='w') as f:
-        fit_history.to_csv(f)
+        fit_history_df.to_csv(f)
     
     telegramSendMessage('Network '+network['model_name']+' training process ended successfully')
+
+    # ------------ SAVE SOME VISUALIZATION DATA ------------ #
+
+    Y_predicted = []
+    Y_vtest = Y_test
+
+    print(Y_predicted)
+
+    # Prepare a predictionSamples vector, in order to plot it
+    for i in range(X_test.shape[0]):
+        X_predict = np.expand_dims(X_test[i],0)
+  
+        prediction = model.predict(X_predict)
+
+        newshape = (timeSteps,1)
+
+        prediction = prediction[0]
+
+        Y_predicted.append(prediction)
+
+    Y_predicted = np.array(Y_predicted).astype("float32")
+
+    PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+
+    newshape = (PLOT_SIZE,1)
+
+    Y_predicted = np.reshape(Y_predicted,newshape)
+
+    Y_vtest = np.reshape(Y_test,newshape)
+
+    np.save('cache/'+network['model_name']+'/visualization-real-lbl.npy',Y_vtest[0:PLOT_SIZE])
+    np.save('cache/'+network['model_name']+'/visualization-prediction-lbl.npy',Y_predicted)
+
+    plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+network['model_name'])
+
+    plotTrainingLoss(fit_history,to_file=True,image_path='cache/'+network['model_name'])
+
+    # summarize history for loss
+
+
+    # ------------ SAVE SOME VISUALIZATION DATA ------------ #    
+
 
 # ---------------------------- TRAINING ---------------------------- #
 
