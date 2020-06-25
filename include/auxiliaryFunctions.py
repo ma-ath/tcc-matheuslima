@@ -236,7 +236,9 @@ def plotAudio(FSample,samples,M,St):
     plt.show()
     pass
 
-def plotAudioPowerWithPrediction(testSamples,predictedSamples):
+def plotAudioPowerWithPrediction(testSamples,predictedSamples,to_file=False,image_path='.'):
+    plt.close('all')
+    
     plt.figure("Audio Power")
 
     audio_length = testSamples.shape[0]
@@ -248,7 +250,25 @@ def plotAudioPowerWithPrediction(testSamples,predictedSamples):
     plt.ylabel("Amplitude")
     plt.title("Audio timeline")
 
-    plt.show()
+    if to_file == False:
+        plt.show()
+    else:
+        plt.savefig(image_path+'/AudioPowerWithPrediction.png')
+
+    pass
+
+def plotTrainingLoss(history,to_file=False,image_path='.'):
+    plt.close('all')
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    if to_file == False:
+        plt.show()
+    else:
+        plt.savefig(image_path+'/lossPlot.png')
     pass
 
 if __name__ == "__main__":
