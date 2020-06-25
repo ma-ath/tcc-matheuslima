@@ -1,0 +1,73 @@
+Project structure is as follows
+
+
+\tcc-matheuslima┐
+                |    
+                ├─ \cache   ┐
+                |           ├─ \model_1 ┐
+                |           |           ├─ archtecture.json
+                |           |           ├─ AudioPowerWithPrediction.png
+                |           |           ├─ fit_history.csv
+                |           |           ├─ loss_plot.png
+                |           |           ├─ model_checkpoint.hdf5
+                |           |           ├─ model_plot.png
+                |           |           ├─ model_weights.h5
+                |           |           ├─ network_configuration.txt
+                |           |           ├─ visualization-prediction-lbl.npy
+                |           |           └─ visualization-real-lbl.npy
+                |           └ \model_n ...
+                ├─ \dataset ┐
+                |           ├─ \raw     ┐
+                |           |           ├─ \test
+                |           |           └─ \train
+                |           ├─ \test    ┐
+                |           |           ├─ \videoname
+                |           |           └─ resized-videoname.mp4
+                |           ├─ \train   ┐
+                |           |           ├─ \videoname
+                |           |           └─ resized-videoname.mp4
+                |           ├─ config-test
+                |           └─ config-train
+                ├─ \include ┐
+                |           ├─ __init__.py
+                |           ├─ auxiliaryFunctions.py
+                |           ├─ global_constants.py
+                |           └─ telegram_logger.py     
+                ├─ \postProcessedData
+                |           ├─ X_test.npy
+                |           ├─ X_train.npy
+                |           ├─ Y_test.npy
+                |           └─ Y_train.npy
+                ├─ \preProcessedData
+                |           ├─ config-test.npy
+                |           ├─ config-train.npy
+                |           ├─ images_testing-img.npy
+                |           ├─ images_testing-lbl.npy
+                |           ├─ images_training-img.npy
+                |           └─ images_training-lbl.npy
+                ├─ \readme  ┐
+                |           ├─ README.en.md
+                |           └─ README.jp.md
+                ├─ __init__.py
+                ├─ dataset_build.py
+                ├─ dataset_posprocessdata.py
+                ├─ dataset_rawVideoProcess.py
+                ├─ network_evaluate.py
+                ├─ network_model.py
+                ├─ network_train.py
+                ├─ networks.py
+                ├─ README.md
+                └─ visualize_predictions.py
+
+# # ------------------------------------------------------------------------- # #
+# Part 1 - Dataset processing
+
+Dataset processing is done by the file dataset_rawVideoProcess.py. Just put all your raw videos
+
+
+
+
+
+
+# Parte 2 - Network selection and training
+
