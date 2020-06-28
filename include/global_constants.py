@@ -18,7 +18,7 @@ dataset_train_raw = "./dataset/raw/train/"  #Path in which all raw video files a
 
 PROCESSED_DATA_FOLDER = "processedData/"
 image_shape = (240,240,3)
-timeSteps = 10
+timeSteps = 100
 
 
 #---------------------------------#
