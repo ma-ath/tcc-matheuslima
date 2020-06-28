@@ -41,5 +41,8 @@ logger.addHandler(handler)
 logger.setLevel(logging.WARNING)
 
 def telegramSendMessage(message):
+    """
+        Envia uma mensagem de log para o telegram
+    """
     if TELEGRAM_LOG_ACTIVATE:
         logger.error(message)
