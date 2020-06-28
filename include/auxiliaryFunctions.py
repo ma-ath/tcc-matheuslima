@@ -202,7 +202,9 @@ def load_model(folder_path):
 
 #Function that returns if a program is installed at the machine
 def is_tool(name):
-    """Check whether `name` is on PATH and marked as executable."""
+    """
+        Check whether `name` is on PATH and marked as executable.
+    """
 
     # from whichcraft import which
     from shutil import which
