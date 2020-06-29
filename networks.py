@@ -1,4 +1,4 @@
-from include.global_constants import *
+from include.globals_and_functions import *
 
 """
     This file contains 

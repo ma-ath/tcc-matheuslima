@@ -8,7 +8,7 @@ import os
 import re
 import pickle
 from include.telegram_logger import *
-from include.global_constants import *
+from include.globals_and_functions import *
 
 telegramSendMessage('dataset_build started processing')
 
@@ -51,6 +51,27 @@ try:    #Trys loading the config file from the processed data folder
 except:     #first time building dataset, config file does not exist
     processedData_config_test = dataset_config_test
 
+#	video_sizes file simply contain how many frames each video contains. This is 
+#	a required information for when loading the dataset correctly to the lstm,
+#	so that two videos dont overlap in one batch
+try:    #Trys loading the video_sizes file
+    with open(PROCESSED_DATA_FOLDER+video_sizes_filename_train,"rb") as fp:
+        video_sizes_train = pickle.load(fp)
+
+except:     #first time building dataset, config file does not exist
+    video_sizes_train = []
+
+#	video_sizes file simply contain how many frames each video contains. This is 
+#	a required information for when loading the dataset correctly to the lstm,
+#	so that two videos dont overlap in one batch
+try:    #Trys loading the video_sizes file
+    with open(PROCESSED_DATA_FOLDER+video_sizes_filename_test,"rb") as fp:
+        video_sizes_test = pickle.load(fp)
+
+except:     #first time building dataset, config file does not exist
+    video_sizes_test = []
+
+
 # If dataset_config is empty, there are no new videos to be built
 if not dataset_config_train:
     print("Train built is already up to date")
@@ -59,6 +80,11 @@ if not dataset_config_test:
 
 for path in dataset_config_train:
 	datapath = dataset_train_datapath + path.replace(".","")
+
+	# load the number_of_frames file
+	with open(datapath+'/'+number_of_frames_filename,"rb") as fp:
+		number_of_frames = pickle.load(fp)
+		video_sizes_train.append(number_of_frames)
 
 	# grab all image paths and create and orders it
 	imagePaths = list(paths.list_images(datapath))
@@ -133,6 +159,11 @@ for path in dataset_config_train:
 
 for path in dataset_config_test:
 	datapath = dataset_test_datapath + path.replace(".","")
+
+	# load the number_of_frames file
+	with open(datapath+'/'+number_of_frames_filename,"rb") as fp:
+		number_of_frames = pickle.load(fp)
+		video_sizes_test.append(number_of_frames)
 
 	# grab all image paths and create and orders it
 	imagePaths = list(paths.list_images(datapath))
@@ -210,6 +241,11 @@ with open(PROCESSED_DATA_FOLDER+"config-train","wb") as fp:
     pickle.dump(processedData_config_train, fp)
 with open(PROCESSED_DATA_FOLDER+"config-test","wb") as fp:
     pickle.dump(processedData_config_test, fp)
+
+with open(PROCESSED_DATA_FOLDER+video_sizes_filename_train,"wb") as fp:
+    pickle.dump(video_sizes_train, fp)
+with open(PROCESSED_DATA_FOLDER+video_sizes_filename_test,"wb") as fp:
+    pickle.dump(video_sizes_test, fp)
 
 print("training and test data where processed and are ready to be used")
 

@@ -8,9 +8,8 @@ import matplotlib.pyplot as plt
 from math import floor, log10, log
 import re
 import pickle
-from include.auxiliaryFunctions import *
 from include.telegram_logger import *
-from include.global_constants import *
+from include.globals_and_functions import *
 
 #check if needed programs are installed
 if not is_tool("ffmpeg"):
@@ -101,6 +100,26 @@ for video_train_raw_name in video_train_raw_datapath:
         videoFrame+=1
         total_number_of_video_frames = currentFrame
 
+    #   After all frames has been extracted, we have to make sure that the number of frames
+    #   extracted is a multiple of timeStepArray[3], so that frames from diferent videos
+    #   dont mix up on the the same batch of the training process. This way we can train
+    #   different videos on the same network
+
+    number_of_extra_extracted_frames = total_number_of_video_frames % timeStepArray[2]
+    print(str(total_number_of_video_frames)+" frames were extracted")
+    print('number_of_extra_extracted_frames: '+str(number_of_extra_extracted_frames))
+
+    #   We here delete those 'extra' video frames
+    for i in range(total_number_of_video_frames-number_of_extra_extracted_frames,total_number_of_video_frames,1):
+        extra_frame = './'+datapath+'/'+ str(i) + '.jpg'
+        os.system('rm -f '+extra_frame)
+
+    total_number_of_video_frames = total_number_of_video_frames - number_of_extra_extracted_frames
+
+    # Save the number of frames in this video on the frames folder
+    with open('./'+datapath+'/'+number_of_frames_filename,"wb") as fp:
+        pickle.dump(total_number_of_video_frames, fp)
+    
     print(str(total_number_of_video_frames)+" frames were extracted")
     # When everything done, release the capture
     cap.release()
@@ -134,14 +153,16 @@ for video_train_raw_name in video_train_raw_datapath:
             partialSumLeft += (1/M)*((samples[j+i*M,0])**2)
             partialSumRight += (1/M)*((samples[j+i*M,1])**2)
             pass
-        St[i,0] = log(partialSumLeft)
-        St[i,1] = log(partialSumRight)
+        if partialSumLeft > 0:
+            St[i,0] = log(partialSumLeft)
+        if partialSumRight > 0:
+            St[i,1] = log(partialSumRight)
         pass
 
     # save numpy array as .npy file
     np.save(datapath+'/audioPower.npy',St)
 
-#extract frames and sound for each video in train data!
+#extract frames and sound for each video in test data!
 for video_test_raw_name in video_test_raw_datapath:
     video_test_raw_datapath = dataset_test_raw + video_test_raw_name
 
@@ -191,6 +212,26 @@ for video_test_raw_name in video_test_raw_datapath:
         videoFrame+=1
         total_number_of_video_frames = currentFrame
 
+    #   After all frames has been extracted, we have to make sure that the number of frames
+    #   extracted is a multiple of timeStepArray[3], so that frames from diferent videos
+    #   dont mix up on the the same batch of the training process. This way we can train
+    #   different videos on the same network
+
+    number_of_extra_extracted_frames = total_number_of_video_frames % timeStepArray[2]
+    print(str(total_number_of_video_frames)+" frames were extracted")
+    print('number_of_extra_extracted_frames: '+str(number_of_extra_extracted_frames))
+
+    #   We here delete those 'extra' video frames
+    for i in range(total_number_of_video_frames-number_of_extra_extracted_frames,total_number_of_video_frames,1):
+        extra_frame = './'+datapath+'/'+ str(i) + '.jpg'
+        os.system('rm -f '+extra_frame)
+
+    total_number_of_video_frames = total_number_of_video_frames - number_of_extra_extracted_frames
+
+    # Save the number of frames in this video on the frames folder
+    with open('./'+datapath+'/'+number_of_frames_filename,"wb") as fp:
+        pickle.dump(total_number_of_video_frames, fp)
+
     print(str(total_number_of_video_frames)+" frames were extracted")
     # When everything done, release the capture
     cap.release()
@@ -224,8 +265,10 @@ for video_test_raw_name in video_test_raw_datapath:
             partialSumLeft += (1/M)*((samples[j+i*M,0])**2)
             partialSumRight += (1/M)*((samples[j+i*M,1])**2)
             pass
-        St[i,0] = log(partialSumLeft)
-        St[i,1] = log(partialSumRight)
+        if partialSumLeft > 0:
+            St[i,0] = log(partialSumLeft)
+        if partialSumRight > 0:
+            St[i,1] = log(partialSumRight)
         pass
 
     # save numpy array as .npy file

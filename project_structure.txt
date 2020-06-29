@@ -21,7 +21,11 @@ Project structure is as follows
                 |           |           ├─ \test
                 |           |           └─ \train
                 |           ├─ \test    ┐
-                |           |           ├─ \videoname
+                |           |           ├─ \videoname   ┐
+                |           |           |               ├─ frames.jpg
+                |           |           |               ├─ audioData.wav
+                |           |           |               ├─ audioPower.npy
+                |           |           |               └─ number_of_frames
                 |           |           └─ resized-videoname.mp4
                 |           ├─ \train   ┐
                 |           |           ├─ \videoname
@@ -30,8 +34,7 @@ Project structure is as follows
                 |           └─ config-train
                 ├─ \include ┐
                 |           ├─ __init__.py
-                |           ├─ auxiliaryFunctions.py
-                |           ├─ global_constants.py
+                |           ├─ globals_and_functions.py
                 |           └─ telegram_logger.py     
                 ├─ \postProcessedData
                 |           ├─ X_test.npy
@@ -41,6 +44,7 @@ Project structure is as follows
                 ├─ \preProcessedData
                 |           ├─ config-test.npy
                 |           ├─ config-train.npy
+                |           ├─ video_sizes
                 |           ├─ images_testing-img.npy
                 |           ├─ images_testing-lbl.npy
                 |           ├─ images_training-img.npy
