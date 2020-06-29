@@ -4,7 +4,7 @@ from keras.applications.vgg16 import VGG16
 from keras.layers import Conv3D, GlobalAveragePooling2D, GlobalMaxPooling2D,Dense, Input, Flatten, ConvLSTM2D, LSTM, TimeDistributed, BatchNormalization
 from keras.utils.vis_utils import plot_model
 from keras.models import Model, Sequential
-from include.global_constants import *
+from include.globals_and_functions import *
 
 def networkModel(network):
 

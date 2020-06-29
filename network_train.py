@@ -16,8 +16,7 @@ try:
     from matplotlib import pyplot as plt
     import pandas
     from include.telegram_logger import *
-    from include.auxiliaryFunctions import *
-    from include.global_constants import *
+    from include.globals_and_functions import *
     from networks import *
     from keras.utils.vis_utils import plot_model
 

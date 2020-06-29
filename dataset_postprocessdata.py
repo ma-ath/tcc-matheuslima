@@ -1,6 +1,6 @@
 from include.auxiliaryFunctions import *
 from include.telegram_logger import *
-from include.global_constants import *
+from include.globals_and_functions import *
 """
 Esse script simplesmente carrega o ddataset em memória e salva em disco
 com LSTM = True
