@@ -1,3 +1,5 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import cv2
 import numpy as np
 import os
@@ -47,11 +49,19 @@ image_shape = (224,224,3)
 timeSteps = 100
 timeStepArray = [3,9,27]
 
+imagenet_mean = [0.485, 0.456, 0.406]
+imagenet_std = [0.229, 0.224, 0.225]
+
 # -------------------------------------------------------- #
 # ------------------ AUXILIARY FUNCTIONS ----------------- #
 
 def preprocess_image(image_array, usecache=False,train_or_test='train'):
     # We only need to calculate those values if we are dealing with a new dataset. So to speedup things, we can use the precalculated mean and std for train and test datasets
+
+    image_array[:, :, :, 0] /= 255
+    image_array[:, :, :, 1] /= 255
+    image_array[:, :, :, 2] /= 255
+
     if not usecache:
         mean = np.mean(image_array,axis=(0,1,2))
         std = np.std(image_array,axis=(0,1,2))
@@ -64,50 +74,58 @@ def preprocess_image(image_array, usecache=False,train_or_test='train'):
     else:
         raise ValueError
 
-    image_array[:, :, :, 0] -= mean[0]
-    image_array[:, :, :, 1] -= mean[1]
-    image_array[:, :, :, 2] -= mean[2]
+    image_array[:, :, :, 0] -= (mean[0])
+    image_array[:, :, :, 1] -= (mean[1])
+    image_array[:, :, :, 2] -= (mean[2])
 
-    image_array[:, :, :, 0] /= std[0]
-    image_array[:, :, :, 1] /= std[1]
-    image_array[:, :, :, 2] /= std[2]
-
-    # mean2 = np.mean(image_array,axis=(0,1,2))
-    # std2 = np.std(image_array,axis=(0,1,2))
-
-    # print("Mean before preprocessin: "+str(mean))
-    # print("Standart deviation before preprocessing: "+str(std))
-    # print("Mean after preprocessin: "+str(mean2))
-    # print("Standart deviation after preprocessing: "+str(std2))
+    image_array[:, :, :, 0] /= (std[0])
+    image_array[:, :, :, 1] /= (std[1])
+    image_array[:, :, :, 2] /= (std[2])
 
     return image_array
 
-def preprocess_labels(label_array):
-    mean = np.mean(label_array,axis=0)
-    std = np.std(label_array,axis=0)
+def loadDataset(test_only=False):
 
-    label_array[:] -= mean
-    
-    label_array[:] /= std
-    
-    mean2 = np.mean(label_array,axis=0)
-    std2 = np.std(label_array,axis=0)
-
-    print("Mean before preprocessin: "+str(mean))
-    print("Standart deviation before preprocessing: "+str(std))
-    print("Mean after preprocessin: "+str(mean2))
-    print("Standart deviation after preprocessing: "+str(std2))
-
-    return label_array, mean, std
-
-def loadDataset(PROCESSED_DATA_FOLDER,image_shape, timeSteps=100,lstm=False,move_window_by_one=False,causal_prediction=True):
     """
-    PROCESSED_DATA_FOLDER: simply the nama of the folder where all processed data is (in fact, it is a global constant)
-    image_shape: the shape of the image (also a global constant)
-    timeSteps: in case of using the LSTM, how many time steps per batch
-    lstm: it using LSTM or not (old method)
-    move_window_by_one: if using LSTM, should the window move image-per-image or window-by-window (will the windows overlap?)
-    causal_prediction: if using LSTM, will it predict the sound volume at the end of the window or in the middle of the window?
+    This is a simple function that loads the dataset
+    """
+    if test_only == False:
+        X_train = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
+        Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
+    X_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
+    Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
+
+    if test_only == False:
+        X_train = np.reshape(X_train,(X_train.shape[0],)+image_shape).astype("float32")
+    X_test = np.reshape(X_test,(X_test.shape[0],)+image_shape).astype("float32")
+
+    #Normalize the input image to have "0" mean and standart deviation of "1"
+    # I tried to do it using the builtin keras function "preprocess_input()", but doing it by hand has better results
+    # I do it before loading the dataset because if done before, i would have to save the
+    # training file as float32, which takes considerably more space than a uint8 format
+
+    if test_only == False:
+        X_train = preprocess_image(X_train,usecache=False,train_or_test='train')
+    X_test = preprocess_image(X_test,usecache=False,train_or_test='test')
+
+    # This is a temporary solution, i just delete one of the audio sources
+    # The ideal thing to do would be to take the mean between the two sources
+    if test_only == False:
+        Y_train = np.delete(Y_train, -1, axis=1)
+    Y_test = np.delete(Y_test, -1, axis=1)
+
+    # For some reason, axis 3 (colour) is fliped
+    X_test = np.flip( X_test, axis=3 )
+    if test_only == False:
+        X_train = np.flip( X_train, axis=3 )
+        return X_train,Y_train,X_test,Y_test
+
+    return X_test,Y_test
+
+def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True):
+
+    """
+    Function that loads the dataset to the training process, for a lstm structure
     """
 
     training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
@@ -115,162 +133,122 @@ def loadDataset(PROCESSED_DATA_FOLDER,image_shape, timeSteps=100,lstm=False,move
     testing_images = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
     testing_labels = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
 
-    X_train = []
-    Y_train = []
-    X_test = []
-    Y_test = []
+    # First reshape is made only for preprocesseing the image array
+    training_images = np.reshape(training_images,(training_images.shape[0],)+image_shape).astype("float32")
+    testing_images = np.reshape(testing_images,(testing_images.shape[0],)+image_shape).astype("float32")
 
-    for image in training_images:
-        X_train.append(image.reshape(image_shape))
-    for label in training_labels:
-        Y_train.append(label)
-    for image in testing_images:
-        X_test.append(image.reshape(image_shape))
-    for label in testing_labels:
-        Y_test.append(label)
+    training_images = preprocess_image(training_images)
+    testing_images = preprocess_image(testing_images)
 
-    #Transform the loaded data to numpy arrays
-    X_train = np.array(X_train).astype("float32")
-    Y_train = np.array(Y_train).astype("float32")
-    X_test = np.array(X_test).astype("float32")
-    Y_test = np.array(Y_test).astype("float32")
+    # I delete one of the audio sources
+    training_labels = np.delete(training_labels, -1, axis=1)
+    testing_labels = np.delete(testing_labels, -1, axis=1)
 
-    #Normalize the input image to have "0" mean and standart deviation of "1"
-    # I tried to do it using the builtin keras function "preprocess_input()", but doing it by hand has better results
-    # I do it before loading the dataset because if done before, i would have to save the
-    # training file as float32, which takes considerably more space than a uint8 format
+    if overlap_windows == False:
+        #
+        # A big part of this checking is not needed if we process the dataset taking into consideration that the number
+        # of images should be a multiple of timesteps (which i did after)
+        #
+        # ------ ADAPT THE DATASET TO RESHAPE IN CASE USING OTHER TIMESTEP ------ #
+        samples = floor(training_images.shape[0] / timeSteps)  #number of samples for the given number of timeSteps
+        throw_away_images = training_images.shape[0] - samples*timeSteps   #number of images i'll have to throw away (trunc) in order to reshape the 4d tensor in the required 5d tensor
 
-    X_train = preprocess_image(X_train,usecache=True,train_or_test='train')
-    X_test = preprocess_image(X_test,usecache=True,train_or_test='test')
+        training_images = np.delete(training_images,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
+        training_labels = np.delete(training_labels,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
 
-    # This is a temporary solution, i just delete one of the audio sources
-    # The ideal thing to do would be to take the mean between the two sources
-    Y_train = np.delete(Y_train, -1, axis=1)
-    Y_test = np.delete(Y_test, -1, axis=1)
+        samples = floor(testing_images.shape[0] / timeSteps)  #number of samples for the given number of timeSteps
+        throw_away_images = testing_images.shape[0] - samples*timeSteps   #number of images i'll have to throw away (trunc) in order to reshape the 4d tensor in the required 5d tensor
 
-    # If not using LSTM, return is shape (None,224,224,3)
-    if lstm == False:
-        return X_train,Y_train,X_test,Y_test
+        testing_images = np.delete(testing_images,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
+        testing_labels = np.delete(testing_labels,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
+        # ----------------------------------------------------------------------- #
 
-    if move_window_by_one == False:
-        """
-            A big part of this checking is not needed if we process the dataset taking into consideration that the number
-            of images should be a multiple of timesteps (which i did after)
-        """
-        number_images = X_train.shape[0]    #total number of images on dataset
-        samples = floor(number_images / timeSteps)  #number of samples for the given number of timeSteps
-        throw_away_images = number_images - samples*timeSteps   #number of images i'll have to throw away (trunc) in order to reshape the 4d tensor in the required 5d tensor
+        samples_train = int(training_images.shape[0] / timeSteps) # samples will ALWAYS be a multiple of timeSteps (3,9 or 27), because i force it when processing the raw files
+        samples_test = int(testing_images.shape[0] / timeSteps)
 
-        X_new_shape = (samples,timeSteps,)+image_shape    #new input format
-        Y_new_shape = (samples,timeSteps,1)               #new output format
+        X_train = np.reshape(training_images,(samples_train,timeSteps)+image_shape)
+        Y_train = np.reshape(training_labels,(samples_train,timeSteps))
 
-        X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
-        Y_train = np.delete(Y_train,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
+        X_test = np.reshape(testing_images,(samples_test,timeSteps)+image_shape)
+        Y_test = np.reshape(testing_labels,(samples_test,timeSteps))
 
-        X_train = np.reshape(X_train,X_new_shape)   #reshape the tensor to include the time dimension
-        Y_train = np.reshape(Y_train,Y_new_shape)   #reshape the tensor to include the time dimension
+        X_train = np.flip( X_train, axis=4 )
+        X_test = np.flip( X_test, axis=4 )
 
-        #  ---------------------------  Do same thing to test dataset   -----------------------------#
-        number_images = X_test.shape[0]    #total number of images on dataset
-        samples = floor(number_images / timeSteps)  #number of samples for the given number of timeSteps
-        throw_away_images = number_images - samples*timeSteps   #number of images i'll have to throw away (trunc) in order to reshape the 4d tensor in the required 5d tensor
-
-        X_new_shape = (samples,timeSteps,)+image_shape    #new input format
-        Y_new_shape = (samples,timeSteps,1)               #new output format
-
-        X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
-        Y_test = np.delete(Y_test,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
-
-        X_test = np.reshape(X_test,X_new_shape)   #reshape the tensor to include the time dimension
-        Y_test = np.reshape(Y_test,Y_new_shape)   #reshape the tensor to include the time dimension
 
         # if move_window_by_one == False, return is of shape (None/timeSteps,timeSteps,240,240,3)
     else:
         # This part of the code was base on the Tensorflow LSTM example:
         # https://www.tensorflow.org/tutorials/structured_data/time_series
         #
-        
+
+        training_images = np.reshape(training_images,(training_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
+        testing_images = np.reshape(testing_images,(testing_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
+
+        if causal_prediction == True:
+            target_size = 0     # If causal, we want to predict the audio volume at the last image of the batch
+        else:
+            target_size = int((timeSteps-1)/2)  # If non causal, we want to predict the volume at the center of the batch
+
+        X_train = []
+        Y_train = []
+        X_test = []
+        Y_test = []
+
+        # ----------------------- TRAINS SET ----------------------- # 
         # Loads the video_sizes array. This array contains what is the size of each video
         # on X_test. Knowing this, we can manage not to mix the videos on transition
         with open(PROCESSED_DATA_FOLDER+video_sizes_filename_train,"rb") as fp:
             number_of_frames = pickle.load(fp)
 
         number_of_frames = number_of_frames[::-1]   # I have to reverse this array
-        if causal_prediction == True:
-            target_size = 0     # If causal, we want to predict the audio volume at the last image of the batch
-        else:
-            target_size = -(timeSteps-1)/2  # If non causal, we want to predict the volume at the center of the batch
 
         # Window loop
         frame_sum = 0   # This variable keeps track of what frame in X_train is being processed now
         for i in range(len(number_of_frames)):  # For each video in X_train . . .
-            print('video'+str(i))
-            for j in range(frame_sum,frame_sum+number_of_frames[i]):  # For each frame in this video . . .
-                print('frame'+str(j))
 
-                start_index = j+timeSteps
-                end_index = j+number_of_frames[i] - target_size
-                print('start'+str(start_index))
-                print('end'+str(end_index))
-                for k in range(start_index, end_index):
-                    indices = range(k-timeSteps, k)
-                    print(indices)
+            start_index = frame_sum+timeSteps
+            end_index = frame_sum+number_of_frames[i]
+            for j in range(start_index, end_index):     # For each window in this video . . .
+                indices = range(j-timeSteps, j)
 
+                X_train.append(np.reshape(training_images[indices],(timeSteps,)+image_shape))
+                Y_train.append(training_labels[j-target_size])
 
+            frame_sum += number_of_frames[i]
+        # -----------------------TEST SET ----------------------- # 
+        # Loads the video_sizes array. This array contains what is the size of each video
+        # on X_test. Knowing this, we can manage not to mix the videos on transition
+        with open(PROCESSED_DATA_FOLDER+video_sizes_filename_test,"rb") as fp:
+            number_of_frames = pickle.load(fp)
 
+        number_of_frames = number_of_frames[::-1]   # I have to reverse this array
 
+        # Window loop
+
+        frame_sum = 0   # This variable keeps track of what frame in X_train is being processed now
+        for i in range(len(number_of_frames)):  # For each video in X_train . . .
+
+            start_index = frame_sum+timeSteps
+            end_index = frame_sum+number_of_frames[i]
+            for j in range(start_index, end_index):     # For each window in this video . . .
+                indices = range(j-timeSteps, j)
+
+                X_test.append(np.reshape(testing_images[indices],(timeSteps,)+image_shape))
+                Y_test.append(testing_labels[j-target_size])
 
             frame_sum += number_of_frames[i]
 
-#        # Reshape data from (history_size,) to (history_size, 1)
-#        data.append(np.reshape(dataset[indices], (history_size, 1)))
-#        labels.append(dataset[i+target_size])
+        X_train = np.array(X_train).astype("float32")
+        Y_train = np.array(Y_train).astype("float32")
+        X_test = np.array(X_test).astype("float32")
+        Y_test = np.array(Y_test).astype("float32")
 
-#    return X_train,Y_train,X_test,Y_test
+        # For some reason channels red and blue (axis 4) are flipped
+        X_train = np.flip( X_train, axis=4 )
+        X_test = np.flip( X_test, axis=4 )
 
-def loadDataset_testOnly(PROCESSED_DATA_FOLDER,image_shape,timeSteps=100,lstm=False):
-    testing_images = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
-    testing_labels = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
-
-    X_test = []
-    Y_test = []
-
-    for image in testing_images:
-        X_test.append(image.reshape(image_shape))
-    for label in testing_labels:
-        Y_test.append(label)
-
-    #Transform the loaded data to numpy arrays
-    X_test = np.array(X_test).astype("float32")
-    Y_test = np.array(Y_test).astype("float32")
-
-    #Normalize the input image for the vgg16 input
-    #I do it before loading the dataset because if done before, i would have to save the
-    #training file as float32, which takes considerably more space than a uint8 format
-
-    X_test = preprocess_image(X_test,usecache=True)
-
-    #Delete one of the audios channel
-    Y_test = np.delete(Y_test, -1, axis=1)
-
-    if lstm == False:
-        return X_train,Y_train,X_test,Y_test
-    
-    #  ---------------------------  Do same thing to test dataset   -----------------------------#
-    number_images = X_test.shape[0]    #total number of images on dataset
-    samples = floor(number_images / timeSteps)  #number of samples for the given number of timeSteps
-    throw_away_images = number_images - samples*timeSteps   #number of images i'll have to throw away (trunc) in order to reshape the 4d tensor in the required 5d tensor
-
-    X_new_shape = (samples,timeSteps,)+image_shape    #new input format
-    Y_new_shape = (samples,timeSteps)               #new output format
-
-    X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
-    Y_test = np.delete(Y_test,slice(0,throw_away_images),axis=0)  #trunc the 4d tensor
-
-    X_test = np.reshape(X_test,X_new_shape)   #reshape the tensor to include the time dimension
-    Y_test = np.reshape(Y_test,Y_new_shape)   #reshape the tensor to include the time dimension
-
-    return X_test,Y_test
+    return X_train,Y_train,X_test,Y_test
 
 def save_model(model,folder_path):
     json_string = model.to_json()
@@ -368,7 +346,7 @@ if __name__ == "__main__":
     Y_train,
     X_test,
     Y_test
-    ] = loadDataset(PROCESSED_DATA_FOLDER,image_shape,timeSteps=3,lstm=True,move_window_by_one=True,causal_prediction=True)                   #Load the dataset
+    ] = loadDatasetLSTM()   #Load the dataset
 
     print(X_train.shape)
     print(Y_train.shape)
