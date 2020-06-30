@@ -41,7 +41,7 @@ Project structure is as follows
                 |           ├─ X_train.npy
                 |           ├─ Y_test.npy
                 |           └─ Y_train.npy
-                ├─ \preProcessedData
+                ├─ \processedData
                 |           ├─ config-test.npy
                 |           ├─ config-train.npy
                 |           ├─ video_sizes

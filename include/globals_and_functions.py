@@ -44,9 +44,10 @@ number_of_frames_filename = "number_of_frames"
 video_sizes_filename_train = "video_sizes_train"
 video_sizes_filename_test = "video_sizes_test"
 
-PROCESSED_DATA_FOLDER = "processedData/"
+DATASET_CACHE_FOLDER = "./cache/cached_dataset/"
+
 image_shape = (224,224,3)
-timeSteps = 100
+timeSteps = 3
 timeStepArray = [3,9,27]
 
 imagenet_mean = [0.485, 0.456, 0.406]
@@ -249,6 +250,19 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True):
         X_test = np.flip( X_test, axis=4 )
 
     return X_train,Y_train,X_test,Y_test
+
+def loadDatasetFromCache():
+    try:
+        X_train = np.load(DATASET_CACHE_FOLDER+"X_train.npy")
+        Y_train = np.load(DATASET_CACHE_FOLDER+"Y_train.npy")
+        X_test = np.load(DATASET_CACHE_FOLDER+"X_test.npy")
+        Y_test = np.load(DATASET_CACHE_FOLDER+"Y_test.npy")
+
+        return X_train,Y_train,X_test,Y_test
+
+    except:
+        print('Error: There is no cached dataset')
+        exit()
 
 def save_model(model,folder_path):
     json_string = model.to_json()

@@ -8,7 +8,7 @@ from include.globals_and_functions import *
 
 def networkModel(network):
 
-    inputs = Input(shape=(timeSteps,)+image_shape)
+    inputs = Input(shape=(network['time_steps'],)+image_shape)
 
     convolutional_layer = VGG16(weights='imagenet', include_top=False,input_shape=image_shape)
     for layer in convolutional_layer.layers[:]:
@@ -74,9 +74,7 @@ if __name__ == "__main__":
             print(key, ' : ', value)
         model.summary()
         plot_model(model,show_shapes=True, show_layer_names=True)
-        
-
-
+      
 def networkModel_leomazza(image_shape):
     #############################################################################
     #                           Model Generation
