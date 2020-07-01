@@ -318,7 +318,7 @@ def plotAudio(FSample,samples,M,St):
     plt.show()
     pass
 
-def plotAudioPowerWithPrediction(testSamples,predictedSamples,to_file=False,image_path='.'):
+def plotAudioPowerWithPrediction(testSamples,predictedSamples,to_file=False,image_path='.',image_name='/AudioPowerWithPrediction.png'):
     plt.close('all')
     
     plt.figure("Audio Power")
@@ -335,7 +335,7 @@ def plotAudioPowerWithPrediction(testSamples,predictedSamples,to_file=False,imag
     if to_file == False:
         plt.show()
     else:
-        plt.savefig(image_path+'/AudioPowerWithPrediction.png')
+        plt.savefig(image_path+image_name)
 
     pass
 

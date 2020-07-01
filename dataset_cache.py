@@ -17,7 +17,7 @@ try:
         Y_train,
         X_test,
         Y_test
-    ] = loadDatasetLSTM(timeSteps=9)   #Load
+    ] = loadDatasetLSTM(timeSteps=5,overlap_windows=True)   #Load
 
     telegramSendMessage('Dataset loaded')
 
@@ -30,7 +30,7 @@ try:
         text_file.write("""Config:
                         LSTM=True
                         overlap_windows=True
-                        timeSteps=Default
+                        timeSteps=5
                         causal_predicion=Default""")
 
 
