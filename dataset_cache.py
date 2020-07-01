@@ -17,7 +17,7 @@ try:
         Y_train,
         X_test,
         Y_test
-    ] = loadDatasetLSTM(overlap_windows=True)   #Load
+    ] = loadDatasetLSTM(timeSteps=9)   #Load
 
     telegramSendMessage('Dataset loaded')
 
@@ -25,6 +25,14 @@ try:
     np.save(DATASET_CACHE_FOLDER+"Y_train.npy",Y_train)
     np.save(DATASET_CACHE_FOLDER+"X_test.npy",X_test)
     np.save(DATASET_CACHE_FOLDER+"Y_test.npy",Y_test)
+
+    with open(DATASET_CACHE_FOLDER+"setconfig.txt", "w") as text_file:
+        text_file.write("""Config:
+                        LSTM=True
+                        overlap_windows=True
+                        timeSteps=Default
+                        causal_predicion=Default""")
+
 
     telegramSendMessage('Script ended sucessfully')
 

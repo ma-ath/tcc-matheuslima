@@ -1,4 +1,5 @@
-
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import keras
 from keras.applications.vgg16 import VGG16
 from keras.layers import Conv3D, GlobalAveragePooling2D, GlobalMaxPooling2D,Dense, Input, Flatten, ConvLSTM2D, LSTM, TimeDistributed, BatchNormalization
@@ -23,21 +24,41 @@ def networkModel(network):
                         padding='valid',
                         data_format='channels_last',
                         activation=network['rcnn_activation'])(vgg16_time)
+
+        if network['pooling'] == 'GAP':
+            POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(rcnn)
+        elif network['pooling'] == 'GMP':
+            POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(rcnn)
+
+        FC = TimeDistributed(Dense(network['fc_nlinear_size'],
+                                    activation=network['fc_nlinear_activation'],
+                                    name='dense_nlinear'),
+                                    name='FC_nonlinear')(POOLING)
+
+        outputs = TimeDistributed(Dense(1, activation='linear', name='dense_1'),name='FC_linear')(FC)
+
     elif network['rcnn_type'] == 'lstm':
-        print('エラーが発生しました＞LSTMはまだ実施されていません')
-        raise
-    
-    if network['pooling'] == 'GAP':
-        POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(rcnn)
-    elif network['pooling'] == 'GMP':
-        POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(rcnn)
+        #
+        #   This LSTM Model is based on the Paper "Quo Vadis, action recognition? A new model and the kinetics dataset"
+        #
 
-    FC = TimeDistributed(Dense(network['fc_nlinear_size'],
-                                activation=network['fc_nlinear_activation'],
-                                name='dense_nlinear'),
-                                name='FC_nonlinear')(POOLING)
+        if network['pooling'] == 'GAP':
+            POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(vgg16_time)
+        elif network['pooling'] == 'GMP':
+            POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(vgg16_time)
 
-    outputs = TimeDistributed(Dense(1, activation='linear', name='dense_1'),name='FC_linear')(FC)
+        normalization = TimeDistributed(BatchNormalization(),name='normalization')(POOLING)
+
+        rcnn = LSTM(network['lstm_units'])(normalization)        
+
+        FC = Dense(network['fc_nlinear_size'],
+                    activation=network['fc_nlinear_activation'],
+                    name='dense_nlinear')(rcnn)
+
+        if network['overlaping_window'] == False:
+            outputs = Dense(network['time_steps'], activation='linear', name='dense_out')(FC)
+        else:
+            outputs = Dense(1, activation='linear', name='dense_out')(FC)
 
     model = Model(inputs=inputs, outputs=outputs)
 

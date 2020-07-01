@@ -47,7 +47,7 @@ video_sizes_filename_test = "video_sizes_test"
 DATASET_CACHE_FOLDER = "./cache/cached_dataset/"
 
 image_shape = (224,224,3)
-timeSteps = 3
+#timeSteps = 3
 timeStepArray = [3,9,27]
 
 imagenet_mean = [0.485, 0.456, 0.406]
