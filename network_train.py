@@ -137,7 +137,7 @@ try:
     
             prediction = model.predict(X_predict)
 
-            newshape = (timeSteps,1)
+            newshape = (network['time_steps'],1)
 
             prediction = prediction[0]
 

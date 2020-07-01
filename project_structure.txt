@@ -15,7 +15,12 @@ Project structure is as follows
                 |           |           ├─ network_configuration.txt
                 |           |           ├─ visualization-prediction-lbl.npy
                 |           |           └─ visualization-real-lbl.npy
-                |           └ \model_n ...
+                |           ├─ \model_n ...
+                |           └─ \caches_dataset ...
+                |                       ├─ X_test.npy
+                |                       ├─ X_train.npy
+                |                       ├─ Y_test.npy
+                |                       └─ Y_train.npy
                 ├─ \dataset ┐
                 |           ├─ \raw     ┐
                 |           |           ├─ \test
@@ -36,11 +41,6 @@ Project structure is as follows
                 |           ├─ __init__.py
                 |           ├─ globals_and_functions.py
                 |           └─ telegram_logger.py     
-                ├─ \postProcessedData
-                |           ├─ X_test.npy
-                |           ├─ X_train.npy
-                |           ├─ Y_test.npy
-                |           └─ Y_train.npy
                 ├─ \processedData
                 |           ├─ config-test.npy
                 |           ├─ config-train.npy
@@ -54,14 +54,12 @@ Project structure is as follows
                 |           └─ README.jp.md
                 ├─ __init__.py
                 ├─ dataset_build.py
-                ├─ dataset_posprocessdata.py
+                ├─ dataset_cache.py
                 ├─ dataset_rawVideoProcess.py
-                ├─ network_evaluate.py
                 ├─ network_model.py
                 ├─ network_train.py
                 ├─ networks.py
-                ├─ README.md
-                └─ visualize_predictions.py
+                └─ README.md
 
 # # ------------------------------------------------------------------------- # #
 # Part 1 - Dataset processing
