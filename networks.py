@@ -23,7 +23,7 @@ networks = [dict() for i in range(8)]
 networks[0]['model_name'] = 'model_lstm_17'
 networks[0]['learning_schedule'] = [0.0001, 0.00005, 0.00001]
 networks[0]['batch_size'] = 1
-networks[0]['number_of_epochs'] = 64
+networks[0]['number_of_epochs'] = 32
 networks[0]['time_steps'] = 9
 networks[0]['features_input'] = True
 
@@ -45,7 +45,7 @@ networks[0]['loss_function'] = 'mse'
 networks[1]['model_name'] = 'model_lstm_18'
 networks[1]['learning_schedule'] = [0.0001, 0.00005, 0.00001]
 networks[1]['batch_size'] = 1
-networks[1]['number_of_epochs'] = 64
+networks[1]['number_of_epochs'] = 32
 networks[1]['time_steps'] = 9
 networks[1]['features_input'] = True
 
@@ -67,7 +67,7 @@ networks[1]['loss_function'] = 'mse'
 networks[2]['model_name'] = 'model_lstm_19'
 networks[2]['learning_schedule'] = [0.0001, 0.00005, 0.00001]
 networks[2]['batch_size'] = 1
-networks[2]['number_of_epochs'] = 64
+networks[2]['number_of_epochs'] = 32
 networks[2]['time_steps'] = 9
 networks[2]['features_input'] = True
 
@@ -89,7 +89,7 @@ networks[2]['loss_function'] = 'mse'
 networks[3]['model_name'] = 'model_lstm_20'
 networks[3]['learning_schedule'] = [0.0001, 0.00005, 0.00001]
 networks[3]['batch_size'] = 1
-networks[3]['number_of_epochs'] = 64
+networks[3]['number_of_epochs'] = 32
 networks[3]['time_steps'] = 9
 networks[3]['features_input'] = True
 

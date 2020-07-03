@@ -52,9 +52,9 @@ def networkModel(network):
         elif network['pooling'] == 'GMP':
             POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(vgg16_time)
 
-        normalization = TimeDistributed(BatchNormalization(),name='normalization')(POOLING)
+        #normalization = TimeDistributed(BatchNormalization(),name='normalization')(POOLING)
 
-        rcnn = LSTM(network['lstm_units'])(normalization)        
+        rcnn = LSTM(network['lstm_units'])(POOLING)#(normalization)        
 
         FC = Dense(network['fc_nlinear_size'],
                     activation=network['fc_nlinear_activation'],
