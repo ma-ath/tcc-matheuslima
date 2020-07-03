@@ -2,6 +2,7 @@ import requests
 from logging import Handler, Formatter
 import logging
 import datetime
+import json
 
 class RequestsHandler(Handler):
     def emit(self, record):
@@ -26,9 +27,13 @@ class LogstashFormatter(Formatter):
 #I use a simple telegram bot logger to get notifications about the
 # training process.
 #
-TELEGRAM_TOKEN = ''   #Telegram bot token
-TELEGRAM_CHAT_ID = ''              #My telegram user id
-TELEGRAM_LOG_ACTIVATE = True                #A variable to turn on/off notifications
+
+with open('include/telegram_credentials.json') as f:
+    my_credentials = json.load(f)
+
+TELEGRAM_TOKEN =  my_credentials['token']  #Telegram bot token
+TELEGRAM_CHAT_ID = my_credentials['myid']  #My telegram user id
+TELEGRAM_LOG_ACTIVATE = True               #A variable to turn on/off notifications
 
 #Setup the telegram logger. This way, everytime we want to send something to the smartphone,
 # we only need to call for logger.error("<message>")
@@ -46,3 +51,6 @@ def telegramSendMessage(message):
     """
     if TELEGRAM_LOG_ACTIVATE:
         logger.error(message)
+
+if __name__ == '__main__':
+    telegramSendMessage("TESTE")
