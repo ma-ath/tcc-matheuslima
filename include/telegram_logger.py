@@ -26,8 +26,8 @@ class LogstashFormatter(Formatter):
 #I use a simple telegram bot logger to get notifications about the
 # training process.
 #
-TELEGRAM_TOKEN = '1087006885:AAGdIGlENuGhOL4qX6oWzna2YaDMP1dxsGs'   #Telegram bot token
-TELEGRAM_CHAT_ID = '116465686'              #My telegram user id
+TELEGRAM_TOKEN = ''   #Telegram bot token
+TELEGRAM_CHAT_ID = ''              #My telegram user id
 TELEGRAM_LOG_ACTIVATE = True                #A variable to turn on/off notifications
 
 #Setup the telegram logger. This way, everytime we want to send something to the smartphone,
