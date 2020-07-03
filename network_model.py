@@ -9,13 +9,18 @@ from include.globals_and_functions import *
 
 def networkModel(network):
 
-    inputs = Input(shape=(network['time_steps'],)+image_shape)
+    if network['features_input'] == False:
+        inputs = Input(shape=(network['time_steps'],)+image_shape)
 
-    convolutional_layer = VGG16(weights='imagenet', include_top=False,input_shape=image_shape)
-    for layer in convolutional_layer.layers[:]:
-        layer.trainable = False     #Freezes all layers in the vgg16
+        convolutional_layer = VGG16(weights='imagenet', include_top=False,input_shape=image_shape)
+        for layer in convolutional_layer.layers[:]:
+            layer.trainable = False     #Freezes all layers in the vgg16
     
-    vgg16_time = TimeDistributed(convolutional_layer,name='VGG16')(inputs)
+        vgg16_time = TimeDistributed(convolutional_layer,name='VGG16')(inputs)
+    else:
+        inputs = Input(shape=(network['time_steps'],)+VGG16_OUTPUT_SHAPE)
+        vgg16_time = inputs
+
 
     if network['rcnn_type'] == 'convlstm':
         rcnn = ConvLSTM2D(return_sequences = True,

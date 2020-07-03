@@ -45,6 +45,10 @@ video_sizes_filename_train = "video_sizes_train"
 video_sizes_filename_test = "video_sizes_test"
 
 DATASET_CACHE_FOLDER = "./cache/cached_dataset/"
+DATASET_VGG16_IMAGEFEATURES_FILEPATH = 'vgg16_image_features/'
+DATASET_VGG16_IMAGEFEATURES_FTRAIN = 'X_ftrain.npy'
+DATASET_VGG16_IMAGEFEATURES_FTEST = 'X_ftest.npy'
+VGG16_OUTPUT_SHAPE = (7,7,512)
 
 image_shape = (224,224,3)
 #timeSteps = 3
@@ -123,23 +127,29 @@ def loadDataset(test_only=False):
 
     return X_test,Y_test
 
-def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True):
+def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,features_only=False):
 
     """
     Function that loads the dataset to the training process, for a lstm structure
     """
+    if features_only == False:
+        training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
+        testing_images = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
+    else:
+        training_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
+        testing_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
 
-    training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
     training_labels = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
-    testing_images = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
     testing_labels = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
 
-    # First reshape is made only for preprocesseing the image array
-    training_images = np.reshape(training_images,(training_images.shape[0],)+image_shape).astype("float32")
-    testing_images = np.reshape(testing_images,(testing_images.shape[0],)+image_shape).astype("float32")
 
-    training_images = preprocess_image(training_images)
-    testing_images = preprocess_image(testing_images)
+    # First reshape is made only for preprocesseing the image array
+    if features_only == False:
+        training_images = np.reshape(training_images,(training_images.shape[0],)+image_shape).astype("float32")
+        testing_images = np.reshape(testing_images,(testing_images.shape[0],)+image_shape).astype("float32")
+
+        training_images = preprocess_image(training_images)
+        testing_images = preprocess_image(testing_images)
 
     # I delete one of the audio sources
     training_labels = np.delete(training_labels, -1, axis=1)
@@ -167,24 +177,32 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True):
         samples_train = int(training_images.shape[0] / timeSteps) # samples will ALWAYS be a multiple of timeSteps (3,9 or 27), because i force it when processing the raw files
         samples_test = int(testing_images.shape[0] / timeSteps)
 
-        X_train = np.reshape(training_images,(samples_train,timeSteps)+image_shape)
-        Y_train = np.reshape(training_labels,(samples_train,timeSteps))
+        if features_only == False:
+            X_train = np.reshape(training_images,(samples_train,timeSteps)+image_shape)
+            X_test = np.reshape(testing_images,(samples_test,timeSteps)+image_shape)
+        else:
+            X_train = np.reshape(training_images,(samples_train,timeSteps)+VGG16_OUTPUT_SHAPE)
+            X_test = np.reshape(testing_images,(samples_test,timeSteps)+VGG16_OUTPUT_SHAPE)
 
-        X_test = np.reshape(testing_images,(samples_test,timeSteps)+image_shape)
+        Y_train = np.reshape(training_labels,(samples_train,timeSteps))
         Y_test = np.reshape(testing_labels,(samples_test,timeSteps))
 
         X_train = np.flip( X_train, axis=4 )
         X_test = np.flip( X_test, axis=4 )
 
-
-        # if move_window_by_one == False, return is of shape (None/timeSteps,timeSteps,240,240,3)
+        # if move_window_by_one == False, return is of shape (None/timeSteps,timeSteps,224,224,3)
     else:
         # This part of the code was base on the Tensorflow LSTM example:
         # https://www.tensorflow.org/tutorials/structured_data/time_series
         #
+        if features_only == False:
+            training_images = np.reshape(training_images,(training_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
+            testing_images = np.reshape(testing_images,(testing_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
+        else:
+            training_images = np.reshape(training_images,(training_images.shape[0],VGG16_OUTPUT_SHAPE[0]*VGG16_OUTPUT_SHAPE[1]*VGG16_OUTPUT_SHAPE[2]))
+            testing_images = np.reshape(testing_images,(testing_images.shape[0],VGG16_OUTPUT_SHAPE[0]*VGG16_OUTPUT_SHAPE[1]*VGG16_OUTPUT_SHAPE[2]))
 
-        training_images = np.reshape(training_images,(training_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
-        testing_images = np.reshape(testing_images,(testing_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
+
 
         if causal_prediction == True:
             target_size = 0     # If causal, we want to predict the audio volume at the last image of the batch
@@ -212,8 +230,11 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True):
             end_index = frame_sum+number_of_frames[i]
             for j in range(start_index, end_index):     # For each window in this video . . .
                 indices = range(j-timeSteps, j)
-
-                X_train.append(np.reshape(training_images[indices],(timeSteps,)+image_shape))
+                
+                if features_only == False:
+                    X_train.append(np.reshape(training_images[indices],(timeSteps,)+image_shape))
+                else:
+                    X_train.append(np.reshape(training_images[indices],(timeSteps,)+VGG16_OUTPUT_SHAPE))
                 Y_train.append(training_labels[j-target_size])
 
             frame_sum += number_of_frames[i]
@@ -235,7 +256,10 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True):
             for j in range(start_index, end_index):     # For each window in this video . . .
                 indices = range(j-timeSteps, j)
 
-                X_test.append(np.reshape(testing_images[indices],(timeSteps,)+image_shape))
+                if features_only == False:
+                    X_test.append(np.reshape(testing_images[indices],(timeSteps,)+image_shape))
+                else:
+                    X_test.append(np.reshape(testing_images[indices],(timeSteps,)+VGG16_OUTPUT_SHAPE))
                 Y_test.append(testing_labels[j-target_size])
 
             frame_sum += number_of_frames[i]

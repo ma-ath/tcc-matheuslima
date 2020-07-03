@@ -17,7 +17,10 @@ try:
         Y_train,
         X_test,
         Y_test
-    ] = loadDatasetLSTM(timeSteps=5,overlap_windows=True)   #Load
+    ] = loadDatasetLSTM(timeSteps=9,overlap_windows=True,features_only=True)   #Load
+
+    print(X_train.shape)
+    print(X_test.shape)
 
     telegramSendMessage('Dataset loaded')
 
