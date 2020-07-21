@@ -1,19 +1,25 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import os                                   #
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 from tensorflow import keras
 from keras.optimizers import Adam
-from keras.losses import mean_squared_error, mean_absolute_error
+from keras.losses import mean_squared_error
 from keras.models import model_from_json
+from keras_preprocessing.image import ImageDataGenerator
+from keras.callbacks import LearningRateScheduler, ModelCheckpoint
 from network_model import networkModel
 import numpy as np
 from PIL import Image
 import re
 from matplotlib import pyplot as plt
 import pandas
-from random import randrange, seed
-from include.auxiliaryFunctions import *
-from include.global_constants import *
+from include.telegram_logger import *
+from include.globals_and_functions import *
+from networks import *
+from keras.utils.vis_utils import plot_model
 
 """
 This is a server-only script! It process some data to be visualized in the visualize_prediction script, a client only one.
