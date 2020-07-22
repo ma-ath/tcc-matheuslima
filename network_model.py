@@ -56,14 +56,20 @@ def networkModel(network):
 
         rcnn = LSTM(network['lstm_units'])(POOLING)#(normalization)        
 
-        FC = Dense(network['fc_nlinear_size'],
-                    activation=network['fc_nlinear_activation'],
-                    name='dense_nlinear')(rcnn)
+        if network['hidden_fc'] == True:
+            FC = Dense(network['fc_nlinear_size'],
+                        activation=network['fc_nlinear_activation'],
+                        name='dense_nlinear')(rcnn)
 
-        if network['overlaping_window'] == False:
-            outputs = Dense(network['time_steps'], activation='linear', name='dense_out')(FC)
+            if network['overlaping_window'] == False:
+                outputs = Dense(network['time_steps'], activation='linear', name='dense_out')(FC)
+            else:
+                outputs = Dense(1, activation='linear', name='dense_out')(FC)
         else:
-            outputs = Dense(1, activation='linear', name='dense_out')(FC)
+            if network['overlaping_window'] == False:
+                outputs = Dense(network['time_steps'], activation='linear', name='dense_out')(rcnn)
+            else:
+                outputs = Dense(1, activation='linear', name='dense_out')(rcnn)
 
     model = Model(inputs=inputs, outputs=outputs)
 
