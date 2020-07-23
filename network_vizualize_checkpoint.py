@@ -1,7 +1,7 @@
 try:
     import os                                   #
     # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
-
+    os.environ["CUDA_VISIBLE_DEVICES"]="3"
     from tensorflow import keras
     from keras.optimizers import Adam
     from keras.losses import mean_squared_error
@@ -20,8 +20,7 @@ try:
 
     telegramSendMessage('dataset load')
 
-    MODELOS = [ 'model_lstm_27',
-                'model_lstm_28',
+    MODELOS = [ 'model_lstm_28',
                 'model_lstm_29',
                 'model_lstm_30',
                 'model_lstm_31'
