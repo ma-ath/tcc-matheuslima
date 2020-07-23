@@ -21,7 +21,7 @@ try:
     telegramSendMessage('dataset load')
 
     MODELOS = [ 'model_lstm_27',
-                'model_lstm_28'
+                'model_lstm_28',
                 'model_lstm_29',
                 'model_lstm_30',
                 'model_lstm_31'
