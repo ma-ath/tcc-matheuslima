@@ -71,13 +71,42 @@ def networkModel(network):
             else:
                 outputs = Dense(1, activation='linear', name='dense_out')(rcnn)
 
+    elif network['rcnn_type'] == 'no_rnn':
+
+        if network['features_input'] == False:
+            inputs = Input(shape=image_shape)
+
+            convolutional_layer = VGG16(weights='imagenet', include_top=False,input_shape=image_shape)
+            for layer in convolutional_layer.layers[:]:
+                layer.trainable = False     #Freezes all layers in the vgg16
+        
+            vgg16_time = convolutional_layer(inputs)
+        else:
+            inputs = Input(shape=VGG16_OUTPUT_SHAPE)
+            vgg16_time = inputs
+
+        if network['pooling'] == 'GAP':
+            POOLING = GlobalAveragePooling2D(data_format=None)(vgg16_time)
+        elif network['pooling'] == 'GMP':
+            POOLING = GlobalMaxPooling2D(data_format=None)(vgg16_time)
+    
+        if network['hidden_fc'] == True:
+            FC = Dense(network['fc_nlinear_size'],
+                        activation=network['fc_nlinear_activation'],
+                        name='dense_nlinear')(POOLING)
+
+            outputs = Dense(1, activation='linear', name='dense_out')(FC)
+        else:
+            outputs = Dense(1, activation='linear', name='dense_out')(POOLING)
+
+
     model = Model(inputs=inputs, outputs=outputs)
 
     return model
     #Colocar uma time distributed na camada FC
     #Olhar a ResNet/colocar um bypass direto da entrada pra saída da lstm
     #Fazer a LSTM funcionar
-    
+
 if __name__ == "__main__":
     from keras.optimizers import Adam
     from keras.losses import mean_squared_error
@@ -144,7 +173,7 @@ def networkModel_leomazza(image_shape):
     GAP_layer = GlobalAveragePooling2D(data_format=None)#(convolutional_layer.output)
     model_layer.add(GAP_layer)
     # model.add(Flatten())
-    FC_layer = Dense(128, activation='linear', name='dense_128')#(GAP_layer)
+    FC_layer = Dense(128, activation='tanh', name='dense_128')#(GAP_layer)
     model_layer.add(FC_layer)
     output_layer = Dense(1, activation='linear', name='dense_1')#(FC_layer)
     model_layer.add(output_layer)

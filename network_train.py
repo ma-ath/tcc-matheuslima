@@ -28,12 +28,29 @@ try:
     # -------------------------- DATASET LOAD -------------------------- #
     telegramSendMessage('Loading dataset')
 
-    [
-        X_train,
-        Y_train,
-        X_test,
-        Y_test
-    ] = loadDatasetFromCache()  #Load the dataset
+    #[
+    #    X_train,
+    #    Y_train,
+    #    X_test,
+    #    Y_test
+    #] = loadDatasetFromCache()  #Load the dataset
+    '''
+        Solucao temporaria so pra rodar um teste rapido
+    '''
+    try:
+        X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
+        Y_train = np.load(DATASET_CACHE_FOLDER+"Y_train.npy")
+        X_test = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
+        Y_test = np.load(DATASET_CACHE_FOLDER+"Y_test.npy")
+
+        throw_away_images = X_train.shape[0] - Y_train.shape[0]
+        X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)
+
+        throw_away_images = X_test.shape[0] - Y_test.shape[0]
+        X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)
+    except:
+        telegramSendMessage('Error loading dataset')
+        raise
     # -------------------------- DATASET LOAD -------------------------- #
     # ---------------------------- TRAINING ---------------------------- #
 
@@ -124,6 +141,78 @@ try:
             fit_history_df.to_csv(f)
         
         telegramSendMessage('Saving vizualization data for '+network['model_name'])
+        # # ------------ SAVE SOME VISUALIZATION DATA ------------ #
+
+        # # ------------------- predicte over test set ------------------- #
+        # Y_predicted = []
+        # Y_vtest = Y_test
+
+        # # Prepare a predictionSamples vector, in order to plot it
+        # for i in range(X_test.shape[0]):
+        #     X_predict = np.expand_dims(X_test[i],0)
+    
+        #     prediction = model.predict(X_predict)
+
+        #     newshape = (network['time_steps'],1)
+
+        #     prediction = prediction[0]
+
+        #     Y_predicted.append(prediction)
+
+        # Y_predicted = np.array(Y_predicted).astype("float32")
+
+        # PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+
+        # newshape = (PLOT_SIZE,1)
+
+        # Y_predicted = np.reshape(Y_predicted,newshape)
+
+        # Y_vtest = np.reshape(Y_test,newshape)
+
+        # np.save('cache/'+network['model_name']+'/visualization-real-lbl.npy',Y_vtest[0:PLOT_SIZE])
+        # np.save('cache/'+network['model_name']+'/visualization-prediction-lbl.npy',Y_predicted)
+
+        # plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+network['model_name'])
+
+        # # ------------------- predicte over train set ------------------- #
+        # Y_predicted = []
+        # Y_vtest = Y_train
+
+        # # Prepare a predictionSamples vector, in order to plot it
+        # for i in range(X_train.shape[0]):
+        #     X_predict = np.expand_dims(X_train[i],0)
+    
+        #     prediction = model.predict(X_predict)
+
+        #     newshape = (network['time_steps'],1)
+
+        #     prediction = prediction[0]
+
+        #     Y_predicted.append(prediction)
+
+        # Y_predicted = np.array(Y_predicted).astype("float32")
+
+        # PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+
+        # newshape = (PLOT_SIZE,1)
+
+        # Y_predicted = np.reshape(Y_predicted,newshape)
+
+        # Y_vtest = np.reshape(Y_train,newshape)
+
+        # np.save('cache/'+network['model_name']+'/visualization-real-train-lbl.npy',Y_vtest[0:PLOT_SIZE])
+        # np.save('cache/'+network['model_name']+'/visualization-prediction-train-lbl.npy',Y_predicted)
+
+        # plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+network['model_name'],image_name='/prediction_Train.png')
+
+        # plotTrainingLoss(fit_history,to_file=True,image_path='cache/'+network['model_name'])
+
+        # # summarize history for loss
+
+
+        # ------------ SAVE SOME VISUALIZATION DATA ------------ #    
+
+
         # ------------ SAVE SOME VISUALIZATION DATA ------------ #
 
         # ------------------- predicte over test set ------------------- #
@@ -136,7 +225,7 @@ try:
     
             prediction = model.predict(X_predict)
 
-            newshape = (network['time_steps'],1)
+            newshape = (1)
 
             prediction = prediction[0]
 
@@ -167,7 +256,7 @@ try:
     
             prediction = model.predict(X_predict)
 
-            newshape = (network['time_steps'],1)
+            newshape = (1)
 
             prediction = prediction[0]
 
@@ -192,8 +281,7 @@ try:
 
         # summarize history for loss
 
-
-        # ------------ SAVE SOME VISUALIZATION DATA ------------ #    
+        #------------ SAVE SOME VISUALIZATION DATA ------------ #    
 
 
     # ---------------------------- TRAINING ---------------------------- #
