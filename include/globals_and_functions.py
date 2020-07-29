@@ -63,9 +63,9 @@ imagenet_std = [0.229, 0.224, 0.225]
 def preprocess_image(image_array, usecache=False,train_or_test='train'):
     # We only need to calculate those values if we are dealing with a new dataset. So to speedup things, we can use the precalculated mean and std for train and test datasets
 
-    image_array[:, :, :, 0] /= 255
-    image_array[:, :, :, 1] /= 255
-    image_array[:, :, :, 2] /= 255
+    #image_array[:, :, :, 0] /= 255
+    #image_array[:, :, :, 1] /= 255
+    #image_array[:, :, :, 2] /= 255
 
     if not usecache:
         mean = np.mean(image_array,axis=(0,1,2))
