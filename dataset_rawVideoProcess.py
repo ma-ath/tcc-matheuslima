@@ -52,7 +52,7 @@ try:
         telegramSendMessage('Test dataset is already up to date')
 
     telegramSendMessage('Extraction information from data!')
-    extract frames and sound for each video in train data!
+    #extract frames and sound for each video in train data!
     for video_train_raw_name in video_train_raw_datapath:
         video_train_raw_datapath = dataset_train_raw + video_train_raw_name
 
