@@ -95,10 +95,10 @@ def loadDataset(test_only=False):
     This is a simple function that loads the dataset
     """
     if test_only == False:
-        X_train = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
-        Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
-    X_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
-    Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
+        X_train = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy",mmap_mode="r")
+        Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy",mmap_mode="r")
+    X_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy",mmap_mode="r")
+    Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy",mmap_mode="r")
 
     if test_only == False:
         X_train = np.reshape(X_train,(X_train.shape[0],)+image_shape).astype("float32")
