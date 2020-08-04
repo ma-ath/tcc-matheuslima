@@ -66,16 +66,19 @@ def preprocess_image(image_array, usecache=False,train_or_test='train'):
     #image_array[:, :, :, 0] /= 255
     #image_array[:, :, :, 1] /= 255
     #image_array[:, :, :, 2] /= 255
-
+    """
+        Bellow means and stds were calculated with the 'calculate_std_mean_byparts' script.
+        Dataset used was the 38x2 (38 videos on train, 2 on test)
+    """
     if not usecache:
         mean = np.mean(image_array,axis=(0,1,2))
         std = np.std(image_array,axis=(0,1,2))
     elif train_or_test == 'train':
-        mean = [3.883008, 3.883008, 3.883008]
-        std = [31.528559, 31.528559, 31.528559]
+        mean = [90.13959802, 86.7031525, 94.3868386]
+        std = [58.67927085, 52.2398956, 54.57580831]
     elif train_or_test == 'test':
-        mean = [4.2647796, 4.2647796, 4.2647796]
-        std = [33.04215, 33.04215, 33.04215]
+        mean = [73.57426842, 74.66081132, 88.61860926]
+        std = [59.68105447, 49.92547875, 52.9416586 ]
     else:
         raise ValueError
 
