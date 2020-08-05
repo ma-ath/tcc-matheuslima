@@ -18,9 +18,11 @@ def networkModel(network):
     
         vgg16_time = TimeDistributed(convolutional_layer,name='VGG16')(inputs)
     else:
-        inputs = Input(shape=(network['time_steps'],)+VGG16_OUTPUT_SHAPE)
+        if network['pooling_input'] == None:
+            inputs = Input(shape=(network['time_steps'],)+VGG16_OUTPUT_SHAPE)         
+        elif network['pooling_input'] == 'GAP' or 'GMP':
+            inputs = Input(shape=(network['time_steps'],VGG16_OUTPUT_SHAPE[2]))
         vgg16_time = inputs
-
 
     if network['rcnn_type'] == 'convlstm':
         rcnn = ConvLSTM2D(return_sequences = True,
@@ -46,15 +48,16 @@ def networkModel(network):
         #
         #   This LSTM Model is based on the Paper "Quo Vadis, action recognition? A new model and the kinetics dataset"
         #
+        if network['pooling_input'] == None:
+            if network['pooling'] == 'GAP':
+                POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(vgg16_time)
+            elif network['pooling'] == 'GMP':
+                POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(vgg16_time)
 
-        if network['pooling'] == 'GAP':
-            POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(vgg16_time)
-        elif network['pooling'] == 'GMP':
-            POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(vgg16_time)
+            rcnn = LSTM(network['lstm_units'])(POOLING)#(normalization)       
 
-        #normalization = TimeDistributed(BatchNormalization(),name='normalization')(POOLING)
-
-        rcnn = LSTM(network['lstm_units'])(POOLING)#(normalization)        
+        else:
+            rcnn = LSTM(network['lstm_units'])(vgg16_time)   
 
         if network['hidden_fc'] == True:
             FC = Dense(network['fc_nlinear_size'],
