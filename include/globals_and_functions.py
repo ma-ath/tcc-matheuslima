@@ -130,17 +130,28 @@ def loadDataset(test_only=False):
 
     return X_test,Y_test
 
-def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,features_only=False):
-
+def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,features_only=False,pooling_input=None):
     """
     Function that loads the dataset to the training process, for a lstm structure
+
+    timeSteps : how many frames inputs are there in one window for the LSTM
+    overlay_windows : if the window move "one-by-one", or "many-by-many"
+    causal_prediction: If the predicted audio sample is in the middle of the window (non-causal), or at the end of the window(causal)
+    features_only : if instead of the actual image input (frames,224,224,3), we use directily the VGG16 extracted feature maps (frames,7,7,512)
+    pooling_input : if using features_only, if the input has a pre-processed pooling input (frames,512) or not (frames,7,7,512) 
     """
     if features_only == False:
         training_images = np.load(PROCESSED_DATA_FOLDER+"images_training-img.npy")
         testing_images = np.load(PROCESSED_DATA_FOLDER+"images_testing-img.npy")
-    else:
+    elif pooling_input == None:
         training_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
         testing_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
+    elif pooling_input == "GAP":
+        training_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN+'_GAP.npy')
+        testing_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST+'_GAP.npy')
+    elif pooling_input == "GMP":
+        training_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN+'_GMP.npy')
+        testing_images = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST+'_GMP.npy')
 
     training_labels = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
     testing_labels = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
@@ -183,15 +194,19 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,fea
         if features_only == False:
             X_train = np.reshape(training_images,(samples_train,timeSteps)+image_shape)
             X_test = np.reshape(testing_images,(samples_test,timeSteps)+image_shape)
-        else:
+        elif pooling_input == None:
             X_train = np.reshape(training_images,(samples_train,timeSteps)+VGG16_OUTPUT_SHAPE)
             X_test = np.reshape(testing_images,(samples_test,timeSteps)+VGG16_OUTPUT_SHAPE)
+        elif pooling_input == 'GAP' or 'GMP':
+            X_train = np.reshape(training_images,(samples_train,timeSteps,VGG16_OUTPUT_SHAPE[2]))
+            X_test = np.reshape(testing_images,(samples_test,timeSteps,VGG16_OUTPUT_SHAPE[2]))
 
         Y_train = np.reshape(training_labels,(samples_train,timeSteps))
         Y_test = np.reshape(testing_labels,(samples_test,timeSteps))
 
-        X_train = np.flip( X_train, axis=4 )
-        X_test = np.flip( X_test, axis=4 )
+        if pooling_input == None:
+            X_train = np.flip( X_train, axis=4 )
+            X_test = np.flip( X_test, axis=4 )
 
         # if move_window_by_one == False, return is of shape (None/timeSteps,timeSteps,224,224,3)
     else:
@@ -201,10 +216,12 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,fea
         if features_only == False:
             training_images = np.reshape(training_images,(training_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
             testing_images = np.reshape(testing_images,(testing_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
-        else:
+        elif pooling_input == None:
             training_images = np.reshape(training_images,(training_images.shape[0],VGG16_OUTPUT_SHAPE[0]*VGG16_OUTPUT_SHAPE[1]*VGG16_OUTPUT_SHAPE[2]))
             testing_images = np.reshape(testing_images,(testing_images.shape[0],VGG16_OUTPUT_SHAPE[0]*VGG16_OUTPUT_SHAPE[1]*VGG16_OUTPUT_SHAPE[2]))
-
+        elif pooling_input == 'GAP' or 'GMP':
+            training_images = np.reshape(training_images,(training_images.shape[0],VGG16_OUTPUT_SHAPE[2]))
+            testing_images = np.reshape(testing_images,(testing_images.shape[0],VGG16_OUTPUT_SHAPE[2]))
 
 
         if causal_prediction == True:
@@ -236,8 +253,10 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,fea
                 
                 if features_only == False:
                     X_train.append(np.reshape(training_images[indices],(timeSteps,)+image_shape))
-                else:
+                elif pooling_input == None:
                     X_train.append(np.reshape(training_images[indices],(timeSteps,)+VGG16_OUTPUT_SHAPE))
+                elif pooling_input == 'GAP' or 'GMP':
+                    X_train.append(np.reshape(training_images[indices],(timeSteps,VGG16_OUTPUT_SHAPE[2])))
                 Y_train.append(training_labels[j-target_size])
 
             frame_sum += number_of_frames[i]
@@ -261,8 +280,10 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,fea
 
                 if features_only == False:
                     X_test.append(np.reshape(testing_images[indices],(timeSteps,)+image_shape))
-                else:
+                elif pooling_input == None:
                     X_test.append(np.reshape(testing_images[indices],(timeSteps,)+VGG16_OUTPUT_SHAPE))
+                elif pooling_input == 'GAP' or 'GMP':
+                    X_test.append(np.reshape(testing_images[indices],(timeSteps,VGG16_OUTPUT_SHAPE[2])))
                 Y_test.append(testing_labels[j-target_size])
 
             frame_sum += number_of_frames[i]
@@ -273,8 +294,9 @@ def loadDatasetLSTM(timeSteps=3,overlap_windows=False,causal_prediction=True,fea
         Y_test = np.array(Y_test).astype("float32")
 
         # For some reason channels red and blue (axis 4) are flipped
-        X_train = np.flip( X_train, axis=4 )
-        X_test = np.flip( X_test, axis=4 )
+        if pooling_input == None:
+            X_train = np.flip( X_train, axis=4 )
+            X_test = np.flip( X_test, axis=4 )
 
     return X_train,Y_train,X_test,Y_test
 
@@ -387,7 +409,7 @@ if __name__ == "__main__":
     Y_train,
     X_test,
     Y_test
-    ] = loadDatasetLSTM()   #Load the dataset
+    ] = loadDatasetLSTM(causal_prediction=False,overlap_windows=True,timeSteps=9,features_only=True,pooling_input='GAP')   #Load the dataset
 
     print(X_train.shape)
     print(Y_train.shape)

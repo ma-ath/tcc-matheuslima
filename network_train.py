@@ -33,10 +33,12 @@ try:
        Y_train,
        X_test,
        Y_test
-    ] = loadDatasetFromCache()  #Load the dataset
-    '''
-        Solucao temporaria so pra rodar um teste rapido
-    '''
+    ] = loadDatasetLSTM(causal_prediction=False,
+                        overlap_windows=True,
+                        timeSteps=9,
+                        features_only=True,
+                        pooling_input='GAP')
+
     # try:
     #     X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
     #     Y_train = np.load(DATASET_CACHE_FOLDER+"Y_train.npy")
@@ -55,6 +57,17 @@ try:
     # ---------------------------- TRAINING ---------------------------- #
 
     for network in networks:
+        #print('Loading dataset for model '+network['model_name'])
+        #[
+        #X_train, 
+        #Y_train,
+        #X_test,
+        #Y_test
+        #] = loadDatasetLSTM(causal_prediction=False,
+        #                overlap_windows=True,
+        #                timeSteps=network['time_steps'],
+        #                features_only=True,
+        #                pooling_input='GAP')
 
         telegramSendMessage('Starting training process for '+network['model_name'])
 
