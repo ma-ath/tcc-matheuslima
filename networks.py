@@ -26,7 +26,7 @@ networks[0]['batch_size'] = 32
 networks[0]['number_of_epochs'] = 128
 networks[0]['time_steps'] = 9
 networks[0]['features_input'] = True
-networks[0]['pooling_input'] = 'GMP'
+networks[0]['pooling_input'] = 'GAP'
 
 networks[0]['optimizer'] = 'adam'
 networks[0]['rcnn_type'] = 'lstm'
@@ -38,7 +38,7 @@ networks[0]['overlaping_window'] = True
 networks[0]['lstm_units'] = 128
 networks[0]['lstm_dropout'] = 0.2
 
-networks[0]['pooling'] = 'GMP'
+networks[0]['pooling'] = 'GAP'
 networks[0]['hidden_fc'] = True
 networks[0]['fc_nlinear_activation'] = 'tanh'
 networks[0]['fc_nlinear_size'] = 128
