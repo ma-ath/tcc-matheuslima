@@ -5,6 +5,7 @@ from keras.applications.vgg16 import VGG16
 from keras.layers import Conv3D, GlobalAveragePooling2D, GlobalMaxPooling2D,Dense, Input, Flatten, ConvLSTM2D, LSTM, TimeDistributed, BatchNormalization
 from keras.utils.vis_utils import plot_model
 from keras.models import Model, Sequential
+from tensorflow.keras import regularizers
 from include.globals_and_functions import *
 
 def networkModel(network):
@@ -54,15 +55,15 @@ def networkModel(network):
             elif network['pooling'] == 'GMP':
                 POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(vgg16_time)
 
-            rcnn = LSTM(network['lstm_units'])(POOLING)#(normalization)       
+            rcnn = LSTM(network['lstm_units'],dropout=network['lstm_dropout'])(POOLING)#(normalization)       
 
         else:
-            rcnn = LSTM(network['lstm_units'])(vgg16_time)   
+            rcnn = LSTM(network['lstm_units'],dropout=network['lstm_dropout'])(vgg16_time)   
 
         if network['hidden_fc'] == True:
             FC = Dense(network['fc_nlinear_size'],
                         activation=network['fc_nlinear_activation'],
-                        name='dense_nlinear')(rcnn)
+                        name='dense_nlinear',activity_regularizer=network['fc_nlinear_activity_regularizer'])(rcnn)
 
             if network['overlaping_window'] == False:
                 outputs = Dense(network['time_steps'], activation='linear', name='dense_out')(FC)
