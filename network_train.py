@@ -26,18 +26,18 @@ try:
         This script run throught all networks variations and trains then one after another    
     """
     # -------------------------- DATASET LOAD -------------------------- #
-    telegramSendMessage('Loading dataset')
+    #telegramSendMessage('Loading dataset')
 
-    [
-       X_train,
-       Y_train,
-       X_test,
-       Y_test
-    ] = loadDatasetLSTM(causal_prediction=False,
-                        overlap_windows=True,
-                        timeSteps=9,
-                        features_only=True,
-                        pooling_input='GAP')
+    #[
+    #   X_train,
+    #   Y_train,
+    #   X_test,
+    #   Y_test
+    #] = loadDatasetLSTM(causal_prediction=False,
+    #                    overlap_windows=True,
+    #                    timeSteps=9,
+    #                    features_only=True,
+    #                    pooling_input='GAP')
 
     # try:
     #     X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
@@ -57,17 +57,18 @@ try:
     # ---------------------------- TRAINING ---------------------------- #
 
     for network in networks:
-        #print('Loading dataset for model '+network['model_name'])
-        #[
-        #X_train, 
-        #Y_train,
-        #X_test,
-        #Y_test
-        #] = loadDatasetLSTM(causal_prediction=False,
-        #                overlap_windows=True,
-        #                timeSteps=network['time_steps'],
-        #                features_only=True,
-        #                pooling_input='GAP')
+        telegramSendMessage('Loading dataset for model '+network['model_name'])
+
+        [
+        X_train, 
+        Y_train,
+        X_test,
+        Y_test
+        ] = loadDatasetLSTM(causal_prediction=network['dataset_causal_prediction'],
+                        overlap_windows=network['dataset_overlap_windows'],
+                        timeSteps=network['time_steps'],
+                        features_only=network['features_input'],
+                        pooling_input=network['pooling_input'])
 
         telegramSendMessage('Starting training process for '+network['model_name'])
 
