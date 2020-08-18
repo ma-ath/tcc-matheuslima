@@ -8,25 +8,75 @@ try:
     from include.globals_and_functions import *
     from include.telegram_logger import *
     import numpy as np
+    from networks import *
 
-    telegramSendMessage('loading dataset')
+    #telegramSendMessage('loading dataset')
 
-    [
-        X_train,
+    #[
+    #    X_train,
+    #    Y_train,
+    #    X_test,
+    #    Y_test
+    #] = loadDatasetFromCache()  #Load the dataset
+
+    #telegramSendMessage('dataset load')
+
+    MODELOS = [ 'model_math_lstm_0',
+                'model_math_lstm_1',
+                'model_math_lstm_2',
+                'model_math_lstm_3',
+                'model_math_lstm_4',
+                'model_math_lstm_5',
+                'model_math_lstm_6',
+                'model_math_lstm_7',
+                'model_math_lstm_8',
+                'model_math_lstm_9',
+                'model_math_lstm_10',
+                'model_math_lstm_11',
+                'model_math_lstm_12',
+                'model_math_lstm_13',
+                'model_math_lstm_14',
+                'model_math_lstm_15',
+                'model_math_lstm_16',
+                'model_math_lstm_17',
+                'model_math_lstm_18',
+                'model_math_lstm_19',
+                'model_math_lstm_20',
+                'model_math_lstm_21',
+                'model_math_lstm_22',
+                'model_math_lstm_23',
+                'model_math_lstm_24',
+                'model_math_lstm_25',
+                'model_math_lstm_26',
+                'model_math_lstm_27',
+                'model_math_lstm_28',
+                'model_math_lstm_29',
+                'model_math_lstm_30',
+                'model_math_lstm_31'
+        ]
+    
+    iteracao = 0
+
+    for MODELO in MODELOS:
+
+        telegramSendMessage('Loading dataset for model '+networks[iteracao]['model_name'])
+
+        [
+        X_train, 
         Y_train,
         X_test,
         Y_test
-    ] = loadDatasetFromCache()  #Load the dataset
+        ] = loadDatasetLSTM(causal_prediction=networks[iteracao]['dataset_causal_prediction'],
+                        overlap_windows=networks[iteracao]['dataset_overlap_windows'],
+                        timeSteps=networks[iteracao]['time_steps'],
+                        features_only=networks[iteracao]['features_input'],
+                        pooling_input=networks[iteracao]['pooling_input'])
 
-    telegramSendMessage('dataset load')
+        telegramSendMessage('Starting training process for '+networks[iteracao]['model_name'])
 
-    MODELOS = [ 'model_lstm_28',
-                'model_lstm_29',
-                'model_lstm_30',
-                'model_lstm_31'
-        ]
+        iteracao+=1
 
-    for MODELO in MODELOS:
+
         telegramSendMessage('carregando modelo '+MODELO)
         path = os.path.join('cache/'+MODELO, 'architecture.json')
         telegramSendMessage('load model: '+path)
