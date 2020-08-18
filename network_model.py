@@ -97,7 +97,7 @@ def networkModel(network):
         if network['hidden_fc'] == True:
             FC = Dense(network['fc_nlinear_size'],
                         activation=network['fc_nlinear_activation'],
-                        name='dense_nlinear')(POOLING)
+                        name='dense_nlinear',activity_regularizer=network['fc_nlinear_activity_regularizer'])(POOLING)
 
             outputs = Dense(1, activation='linear', name='dense_out')(FC)
         else:

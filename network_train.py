@@ -39,36 +39,39 @@ try:
     #                    features_only=True,
     #                    pooling_input='GAP')
 
-    # try:
-    #     X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
-    #     Y_train = np.load(DATASET_CACHE_FOLDER+"Y_train.npy")
-    #     X_test = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
-    #     Y_test = np.load(DATASET_CACHE_FOLDER+"Y_test.npy")
+    try:
+        X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
+        Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
+        X_test = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
+        Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
 
-    #     throw_away_images = X_train.shape[0] - Y_train.shape[0]
-    #     X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)
+        Y_train = np.delete(Y_train, -1, axis=1)
+        Y_test = np.delete(Y_test, -1, axis=1)
 
-    #     throw_away_images = X_test.shape[0] - Y_test.shape[0]
-    #     X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)
-    # except:
-    #     telegramSendMessage('Error loading dataset')
-    #     raise
+        #throw_away_images = X_train.shape[0] - Y_train.shape[0]
+        #X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)
+
+        #throw_away_images = X_test.shape[0] - Y_test.shape[0]
+        #X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)
+    except:
+        telegramSendMessage('Error loading dataset')
+        raise
     # -------------------------- DATASET LOAD -------------------------- #
     # ---------------------------- TRAINING ---------------------------- #
 
     for network in networks:
-        telegramSendMessage('Loading dataset for model '+network['model_name'])
+        #telegramSendMessage('Loading dataset for model '+network['model_name'])
 
-        [
-        X_train, 
-        Y_train,
-        X_test,
-        Y_test
-        ] = loadDatasetLSTM(causal_prediction=network['dataset_causal_prediction'],
-                        overlap_windows=network['dataset_overlap_windows'],
-                        timeSteps=network['time_steps'],
-                        features_only=network['features_input'],
-                        pooling_input=network['pooling_input'])
+        #[
+        #X_train, 
+        #Y_train,
+        #X_test,
+        #Y_test
+        #] = loadDatasetLSTM(causal_prediction=network['dataset_causal_prediction'],
+        #                overlap_windows=network['dataset_overlap_windows'],
+        #                timeSteps=network['time_steps'],
+        #                features_only=network['features_input'],
+        #                pooling_input=network['pooling_input'])
 
         telegramSendMessage('Starting training process for '+network['model_name'])
 
