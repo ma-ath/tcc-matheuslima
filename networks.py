@@ -25,11 +25,52 @@ from include.globals_and_functions import *
     fc_nlinear_activity_regularizer
 
 """
-net_number = 32
+net_number = 10
 networks = [dict() for i in range(net_number)]
 
 #   FIXED PARAMETERS FOR ALL NETWORKS
+for i in range(net_number):
+    networks[i]['model_name'] = 'model_math_nolstm_'+str(i)
+    networks[i]['dataset_overlap_windows'] = True
+    networks[i]['overlaping_window'] = True
+    networks[i]['features_input'] = True
+    networks[i]['pooling_input'] = None
+    networks[i]['time_steps'] = 9
 
+    networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
+    networks[i]['batch_size'] = 32
+    networks[i]['number_of_epochs'] = 90
+    networks[i]['loss_function'] = 'mse'    
+    networks[i]['optimizer'] = 'adam'
+
+    networks[i]['rcnn_type'] = 'no_rnn'
+    networks[i]['lstm_units'] = 128
+
+    networks[i]['fc_nlinear_activation'] = 'tanh'
+    networks[i]['fc_nlinear_size'] = 128
+
+for i in range(net_number):
+    if i%2 < (2-1)/2:
+        networks[i]['pooling'] = 'GAP'
+    else:
+        networks[i]['pooling'] = 'GMP'        
+
+    if i < 2:
+        networks[i]['hidden_fc'] = False
+    else:
+        networks[i]['hidden_fc'] = True
+
+    if (i-2)%4 < (4-1)/2:
+        networks[i]['fc_nlinear_activity_regularizer'] = None
+    else:
+        networks[i]['fc_nlinear_activity_regularizer'] = 'l2'
+
+    if (i-2)%8 < (8-1)/2:
+        networks[i]['fc_nlinear_activation'] = 'relu'
+    else:
+        networks[i]['fc_nlinear_activation'] = 'tanh'
+
+"""
 for i in range(net_number):
     networks[i]['model_name'] = 'model_math_lstm_'+str(i)
     networks[i]['dataset_overlap_windows'] = True
@@ -77,7 +118,7 @@ for i in range(net_number):
         networks[i]['fc_nlinear_activity_regularizer'] = 'l2'
     else:
         networks[i]['fc_nlinear_activity_regularizer'] = None
-
+"""
 #   Network Parameters -------------------------------------------- #
 #networks[0]['dataset_causal_prediction'] = True
 #networks[0]['pooling_input'] = 'GMP'
