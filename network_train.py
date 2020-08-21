@@ -38,7 +38,7 @@ try:
     #                    timeSteps=9,
     #                    features_only=True,
     #                    pooling_input='GAP')
-
+    """
     try:
         X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
         Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
@@ -56,22 +56,23 @@ try:
     except:
         telegramSendMessage('Error loading dataset')
         raise
+    """
     # -------------------------- DATASET LOAD -------------------------- #
     # ---------------------------- TRAINING ---------------------------- #
 
     for network in networks:
-        #telegramSendMessage('Loading dataset for model '+network['model_name'])
+        telegramSendMessage('Loading dataset for model '+network['model_name'])
 
-        #[
-        #X_train, 
-        #Y_train,
-        #X_test,
-        #Y_test
-        #] = loadDatasetLSTM(causal_prediction=network['dataset_causal_prediction'],
-        #                overlap_windows=network['dataset_overlap_windows'],
-        #                timeSteps=network['time_steps'],
-        #                features_only=network['features_input'],
-        #                pooling_input=network['pooling_input'])
+        [
+        X_train, 
+        Y_train,
+        X_test,
+        Y_test
+        ] = loadDatasetLSTM(causal_prediction=network['dataset_causal_prediction'],
+                        overlap_windows=network['dataset_overlap_windows'],
+                        timeSteps=network['time_steps'],
+                        features_only=network['features_input'],
+                        pooling_input=network['pooling_input'])
 
         telegramSendMessage('Starting training process for '+network['model_name'])
 

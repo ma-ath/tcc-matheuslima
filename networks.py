@@ -25,9 +25,53 @@ from include.globals_and_functions import *
     fc_nlinear_activity_regularizer
 
 """
-net_number = 10
+net_number = 16
 networks = [dict() for i in range(net_number)]
 
+for i in range(net_number):
+    networks[i]['model_name'] = 'model_math_lstm_nohidden_'+str(i)
+    networks[i]['dataset_overlap_windows'] = True
+    networks[i]['overlaping_window'] = True
+    networks[i]['features_input'] = True
+    networks[i]['pooling'] = 'GAP'
+
+    networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
+    networks[i]['batch_size'] = 32
+    networks[i]['number_of_epochs'] = 90
+    networks[i]['loss_function'] = 'mse'    
+    networks[i]['optimizer'] = 'adam'
+
+    networks[i]['rcnn_type'] = 'lstm'
+    networks[i]['lstm_units'] = 128
+
+    networks[i]['hidden_fc'] = False
+    networks[i]['fc_nlinear_activation'] = 'tanh'
+    networks[i]['fc_nlinear_size'] = 128
+
+#   Diferent parameters generation  --------------------------------- #
+
+for i in range(net_number):
+    if i%2 < (2-1)/2:
+        networks[i]['dataset_causal_prediction'] = True
+    else:
+        networks[i]['dataset_causal_prediction'] = False        
+
+    if i%4 < (4-1)/2:
+        networks[i]['pooling_input'] = 'GAP'
+    else:
+        networks[i]['pooling_input'] = 'GMP'        
+
+    if i%8 < (8-1)/2:
+        networks[i]['time_steps'] = 9
+    else:
+        networks[i]['time_steps'] = 17
+
+    if i%16 < (16-1)/2:
+        networks[i]['lstm_dropout'] = 0.2
+    else:
+        networks[i]['lstm_dropout'] = 0
+
+"""
 #   FIXED PARAMETERS FOR ALL NETWORKS
 for i in range(net_number):
     networks[i]['model_name'] = 'model_math_nolstm_'+str(i)
@@ -70,54 +114,6 @@ for i in range(net_number):
     else:
         networks[i]['fc_nlinear_activation'] = 'tanh'
 
-"""
-for i in range(net_number):
-    networks[i]['model_name'] = 'model_math_lstm_'+str(i)
-    networks[i]['dataset_overlap_windows'] = True
-    networks[i]['overlaping_window'] = True
-    networks[i]['features_input'] = True
-    networks[i]['pooling'] = 'GAP'
-
-    networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
-    networks[i]['batch_size'] = 32
-    networks[i]['number_of_epochs'] = 90
-    networks[i]['loss_function'] = 'mse'    
-    networks[i]['optimizer'] = 'adam'
-
-    networks[i]['rcnn_type'] = 'lstm'
-    networks[i]['lstm_units'] = 128
-
-    networks[i]['hidden_fc'] = True
-    networks[i]['fc_nlinear_activation'] = 'tanh'
-    networks[i]['fc_nlinear_size'] = 128
-
-#   Diferent parameters generation  --------------------------------- #
-
-for i in range(net_number):
-    if i%2 < (2-1)/2:
-        networks[i]['dataset_causal_prediction'] = True
-    else:
-        networks[i]['dataset_causal_prediction'] = False        
-
-    if i%4 < (4-1)/2:
-        networks[i]['pooling_input'] = 'GAP'
-    else:
-        networks[i]['pooling_input'] = 'GMP'        
-
-    if i%8 < (8-1)/2:
-        networks[i]['time_steps'] = 9
-    else:
-        networks[i]['time_steps'] = 17
-
-    if i%16 < (16-1)/2:
-        networks[i]['lstm_dropout'] = 0.2
-    else:
-        networks[i]['lstm_dropout'] = 0
-
-    if i%32 < (32-1)/2:
-        networks[i]['fc_nlinear_activity_regularizer'] = 'l2'
-    else:
-        networks[i]['fc_nlinear_activity_regularizer'] = None
 """
 #   Network Parameters -------------------------------------------- #
 #networks[0]['dataset_causal_prediction'] = True
