@@ -25,7 +25,7 @@ from include.globals_and_functions import *
     fc_nlinear_activity_regularizer
 
 """
-net_number = 16
+net_number = 24
 networks = [dict() for i in range(net_number)]
 
 for i in range(net_number):
@@ -66,11 +66,12 @@ for i in range(net_number):
     else:
         networks[i]['time_steps'] = 17
 
-    if i%16 < (16-1)/2:
+    if i < 8:
         networks[i]['lstm_dropout'] = 0.2
-    else:
+    elif i < 16:
         networks[i]['lstm_dropout'] = 0
-
+    else:
+        networks[i]['lstm_dropout'] = 0.5
 """
 #   FIXED PARAMETERS FOR ALL NETWORKS
 for i in range(net_number):
