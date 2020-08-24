@@ -10,23 +10,23 @@ try:
     import numpy as np
     from networks import *
 
-    try:
-        X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
-        Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
-        X_test = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
-        Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
+    #try:
+    #    X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
+    #    Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
+    #    X_test = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
+    #    Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
 
-        Y_train = np.delete(Y_train, -1, axis=1)
-        Y_test = np.delete(Y_test, -1, axis=1)
+    #    Y_train = np.delete(Y_train, -1, axis=1)
+    #    Y_test = np.delete(Y_test, -1, axis=1)
 
         #throw_away_images = X_train.shape[0] - Y_train.shape[0]
         #X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)
 
         #throw_away_images = X_test.shape[0] - Y_test.shape[0]
         #X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)
-    except:
-        telegramSendMessage('Error loading dataset')
-        raise
+    #except:
+    #    telegramSendMessage('Error loading dataset')
+    #    raise
 
     #telegramSendMessage('loading dataset')
 
@@ -39,34 +39,48 @@ try:
 
     #telegramSendMessage('dataset load')
 
-    MODELOS = [ 'model_math_nolstm_0',
-                'model_math_nolstm_1',
-                'model_math_nolstm_2',
-                'model_math_nolstm_3',
-                'model_math_nolstm_4',
-                'model_math_nolstm_5',
-                'model_math_nolstm_6',
-                'model_math_nolstm_7',
-                'model_math_nolstm_8',
-                'model_math_nolstm_9'
+    MODELOS = [ 'model_math_lstm_nohidden_0',
+                'model_math_lstm_nohidden_1',
+                'model_math_lstm_nohidden_2',
+                'model_math_lstm_nohidden_3',
+                'model_math_lstm_nohidden_4',
+                'model_math_lstm_nohidden_5',
+                'model_math_lstm_nohidden_6',
+                'model_math_lstm_nohidden_7',
+                'model_math_lstm_nohidden_8',
+                'model_math_lstm_nohidden_9',
+                'model_math_lstm_nohidden_10',
+                'model_math_lstm_nohidden_11',
+                'model_math_lstm_nohidden_12',
+                'model_math_lstm_nohidden_13',
+                'model_math_lstm_nohidden_14',
+                'model_math_lstm_nohidden_15',
+                'model_math_lstm_nohidden_16',
+                'model_math_lstm_nohidden_17',
+                'model_math_lstm_nohidden_18',
+                'model_math_lstm_nohidden_19',
+                'model_math_lstm_nohidden_20',
+                'model_math_lstm_nohidden_21',
+                'model_math_lstm_nohidden_22',
+                'model_math_lstm_nohidden_23'
         ]
     
     iteracao = 0
 
     for MODELO in MODELOS:
 
-        #telegramSendMessage('Loading dataset for model '+networks[iteracao]['model_name'])
+        telegramSendMessage('Loading dataset for model '+networks[iteracao]['model_name'])
         
-        #[
-        #X_train, 
-        #Y_train,
-        #X_test,
-        #Y_test
-        #] = loadDatasetLSTM(causal_prediction=networks[iteracao]['dataset_causal_prediction'],
-        #                overlap_windows=networks[iteracao]['dataset_overlap_windows'],
-        #                timeSteps=networks[iteracao]['time_steps'],
-        #                features_only=networks[iteracao]['features_input'],
-        #                pooling_input=networks[iteracao]['pooling_input'])
+        [
+        X_train, 
+        Y_train,
+        X_test,
+        Y_test
+        ] = loadDatasetLSTM(causal_prediction=networks[iteracao]['dataset_causal_prediction'],
+                        overlap_windows=networks[iteracao]['dataset_overlap_windows'],
+                        timeSteps=networks[iteracao]['time_steps'],
+                        features_only=networks[iteracao]['features_input'],
+                        pooling_input=networks[iteracao]['pooling_input'])
 
         telegramSendMessage('Starting training process for '+networks[iteracao]['model_name'])
 
