@@ -8,8 +8,26 @@ try:
     from include.globals_and_functions import *
     from include.telegram_logger import *
     import numpy as np
+    import pickle
+    from os import path
     from networks import *
 
+    # Create a folder to host results
+    try:
+        if not os.path.exists("results/"):
+            os.makedirs("results/")
+    except OSError:
+        print ('Error: Creating directory for train data')
+        telegramSendMessage('Error: Creating directory for train data')
+        exit ()
+
+	# load the number_of_frames file
+    with open('dataset/test/M2U00004MPG/'+number_of_frames_filename,"rb") as fp:
+        number_of_frames_day = pickle.load(fp)
+    #
+    #   This test has 2 videos, a night video first and a day video last. This is the number of frames in the day video
+    #
+    
     #try:
     #    X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
     #    Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
@@ -122,16 +140,28 @@ try:
 
         Y_vtest = np.reshape(Y_test,newshape)
 
-        plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+MODELO,image_name='/prediction_val_checkpoint.png')
+        np.save("results/"+"check_night_"+MODELO,Y_predicted[0:Y_predicted.shape[0]-number_of_frames_day])
+        np.save("results/"+"check_day_"+MODELO,Y_predicted[Y_predicted.shape[0]-number_of_frames_day:Y_predicted.shape[0]])
+        #plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+MODELO,image_name='/prediction_val_checkpoint.png')
 
-        # ------------------- predicte over train set ------------------- #
-        """
+        # ------------------- predicte over test set ------------------- #
+
+        telegramSendMessage('carregando modelo '+MODELO)
+        path = os.path.join('cache/'+MODELO, 'architecture.json')
+        telegramSendMessage('load model: '+path)
+        model = model_from_json(open(os.path.join('cache/'+MODELO+'/', 'architecture.json')).read())
+        model.load_weights(os.path.join('cache/'+MODELO, 'model_weights.h5'))
+
+        model.compile(optimizer='adam', loss=mean_squared_error)
+
+        model.summary()
+
         Y_predicted = []
-        Y_vtest = Y_train
+        Y_vtest = Y_test
 
-         Prepare a predictionSamples vector, in order to plot it
-        for i in range(X_train.shape[0]):
-            X_predict = np.expand_dims(X_train[i],0)
+        # Prepare a predictionSamples vector, in order to plot it
+        for i in range(X_test.shape[0]):
+            X_predict = np.expand_dims(X_test[i],0)
 
             prediction = model.predict(X_predict)
 
@@ -149,10 +179,12 @@ try:
 
         Y_predicted = np.reshape(Y_predicted,newshape)
 
-        Y_vtest = np.reshape(Y_train,newshape)
+        Y_vtest = np.reshape(Y_test,newshape)
 
-        plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+MODELO,image_name='/prediction_train_checkpoint.png')
-        """
+        #plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+MODELO,image_name='/prediction_val_checkpoint.png')
+        np.save("results/"+"last_night_"+MODELO,Y_predicted[0:Y_predicted.shape[0]-number_of_frames_day])
+        np.save("results/"+"last_day_"+MODELO,Y_predicted[Y_predicted.shape[0]-number_of_frames_day:Y_predicted.shape[0]])
+
     telegramSendMessage('script end')
 except Exception as e:
 
