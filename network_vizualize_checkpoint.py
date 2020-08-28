@@ -57,16 +57,38 @@ try:
 
     #telegramSendMessage('dataset load')
 
-    MODELOS = [ 'model_math_nolstm_0',
-                'model_math_nolstm_1',
-                'model_math_nolstm_2',
-                'model_math_nolstm_3',
-                'model_math_nolstm_4',
-                'model_math_nolstm_5',
-                'model_math_nolstm_6',
-                'model_math_nolstm_7',
-                'model_math_nolstm_8',
-                'model_math_nolstm_9'
+    MODELOS = [ 'model_math_lstm_0',
+                'model_math_lstm_1',
+                'model_math_lstm_2',
+                'model_math_lstm_3',
+                'model_math_lstm_4',
+                'model_math_lstm_5',
+                'model_math_lstm_6',
+                'model_math_lstm_7',
+                'model_math_lstm_8',
+                'model_math_lstm_9',
+                'model_math_lstm_10',
+                'model_math_lstm_11',
+                'model_math_lstm_12',
+                'model_math_lstm_13',
+                'model_math_lstm_14',
+                'model_math_lstm_15',
+                'model_math_lstm_16',
+                'model_math_lstm_17',
+                'model_math_lstm_18',
+                'model_math_lstm_19',
+                'model_math_lstm_20',
+                'model_math_lstm_21',
+                'model_math_lstm_22',
+                'model_math_lstm_23',
+                'model_math_lstm_24',
+                'model_math_lstm_25',
+                'model_math_lstm_26',
+                'model_math_lstm_27',
+                'model_math_lstm_28',
+                'model_math_lstm_29',
+                'model_math_lstm_30',
+                'model_math_lstm_31'
         ]
     
     iteracao = 0
