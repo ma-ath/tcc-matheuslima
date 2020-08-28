@@ -28,23 +28,23 @@ try:
     #   This test has 2 videos, a night video first and a day video last. This is the number of frames in the day video
     #
     
-    try:
-        X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
-        Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
-        X_test = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
-        Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
+    #try:
+    #    X_train = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTRAIN)
+    #    Y_train = np.load(PROCESSED_DATA_FOLDER+"images_training-lbl.npy")
+    #    X_test = np.load(PROCESSED_DATA_FOLDER+DATASET_VGG16_IMAGEFEATURES_FILEPATH+DATASET_VGG16_IMAGEFEATURES_FTEST)
+    #    Y_test = np.load(PROCESSED_DATA_FOLDER+"images_testing-lbl.npy")
 
-        Y_train = np.delete(Y_train, -1, axis=1)
-        Y_test = np.delete(Y_test, -1, axis=1)
+    #    Y_train = np.delete(Y_train, -1, axis=1)
+    #    Y_test = np.delete(Y_test, -1, axis=1)
 
-        throw_away_images = X_train.shape[0] - Y_train.shape[0]
-        X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)
+    #    throw_away_images = X_train.shape[0] - Y_train.shape[0]
+    #    X_train = np.delete(X_train,slice(0,throw_away_images),axis=0)
 
-        throw_away_images = X_test.shape[0] - Y_test.shape[0]
-        X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)
-    except:
-        telegramSendMessage('Error loading dataset')
-        raise
+    #    throw_away_images = X_test.shape[0] - Y_test.shape[0]
+    #    X_test = np.delete(X_test,slice(0,throw_away_images),axis=0)
+    #except:
+    #    telegramSendMessage('Error loading dataset')
+    #    raise
 
     #telegramSendMessage('loading dataset')
 
@@ -72,7 +72,7 @@ try:
     iteracao = 0
 
     for MODELO in MODELOS:
-        """
+        
         telegramSendMessage('Loading dataset for model '+networks[iteracao]['model_name'])
         
         [
@@ -85,7 +85,7 @@ try:
                         timeSteps=networks[iteracao]['time_steps'],
                         features_only=networks[iteracao]['features_input'],
                         pooling_input=networks[iteracao]['pooling_input'])
-        """
+        
         telegramSendMessage('Starting vizualization process for '+networks[iteracao]['model_name'])
 
         iteracao+=1
