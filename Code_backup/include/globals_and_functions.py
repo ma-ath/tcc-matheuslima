@@ -26,30 +26,18 @@ from keras.applications.vgg16 import preprocess_input
 #Dataset creation constants
 # -------------------------------------------------------- #
 # this constant indicates how much of the data will be used as train data
-CONST_STR_DATASET_RAW_DATAPATH = "./dataset/raw/"   #Path in which all raw video files are
-CONST_STR_DATASET_CONFIG_FILENAME = "config"        #this is the name of the config file for raw videos
-CONST_STR_DATASET_DATAPATH = "./dataset/"           #Datapath for the dataset
-CONST_STR_DATASET_OUTPUT_RESOLUTION = "224x224"     #Output resolution of video for
-CONST_VEC_DATASET_OUTPUT_RESOLUTION = (224, 224)
-CONST_INT_DATASET_DECIMATION_FACTOR = 10            #This number determines factor of decimation when extracting frames from video
-CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME = "nmb_of_frames"
-CONS_STR_DATASET_AUDIOFILE_FILENAME = "/audioData.wav"
-CONS_STR_DATASET_AUDIODATA_FILENAME = "/audioData.npy"
-CONS_STR_DATASET_STACKED_FRAMES_FILENAME = "/imagedata.npy"
-
-
 TEST_DATA_RATIO = 0.75
 AUDIO_DATA_NAME = "audioPower.npy"
 PROCESSED_DATA_FOLDER = "processedData/"
 dataset_datapath = "./dataset/" #Datapath for the dataset
 dataset_train_datapath = "./dataset/train/"  #Path for train dataset
 dataset_test_datapath = "./dataset/test/"    #Path for test dataset   
-
+dataset_raw = "./dataset/raw/"  #Path in which all raw video files are
 dataset_config_filename = "config"
 dataset_config_train_filename = "config-train"
 dataset_config_test_filename = "config-test"
 output_resolution = "224x224"   #This string determines the output resolution of the resized video
-
+frameJump = 10                  #This number determines what is the next frame in the amostration process
 dataset_test_raw = "./dataset/raw/test/"    #Path in which all raw video files are
 dataset_train_raw = "./dataset/raw/train/"  #Path in which all raw video files are
 number_of_frames_filename = "number_of_frames"
@@ -427,22 +415,3 @@ if __name__ == "__main__":
     print(Y_train.shape)
     print(X_test.shape)
     print(Y_test.shape)
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-def print_info(s):
-    print(f"{bcolors.OKGREEN}[INFO]: {bcolors.ENDC}"+s)
-
-def print_error(s):
-    print(f"{bcolors.FAIL}[ERROR]: {bcolors.ENDC}"+s)
-
-def print_warning(s):
-    print(f"{bcolors.WARNING}[WARNING]: {bcolors.ENDC}"+s)
