@@ -31,11 +31,16 @@ CONST_STR_DATASET_CONFIG_FILENAME = "config"        #this is the name of the con
 CONST_STR_DATASET_DATAPATH = "./dataset/"           #Datapath for the dataset
 CONST_STR_DATASET_OUTPUT_RESOLUTION = "224x224"     #Output resolution of video for
 CONST_VEC_DATASET_OUTPUT_RESOLUTION = (224, 224)
+CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE = (224, 224,3)
 CONST_INT_DATASET_DECIMATION_FACTOR = 10            #This number determines factor of decimation when extracting frames from video
 CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME = "nmb_of_frames"
 CONS_STR_DATASET_AUDIOFILE_FILENAME = "/audioData.wav"
 CONS_STR_DATASET_AUDIODATA_FILENAME = "/audioData.npy"
+CONS_STR_DATASET_STATISTICS_FILENAME = "/statistics"
 CONS_STR_DATASET_STACKED_FRAMES_FILENAME = "/imagedata.npy"
+CONST_STR_DATASET_FOLDS_DATAPATH = "./dataset/folds/"
+
+CUDA_GPU = "0"
 
 
 TEST_DATA_RATIO = 0.75

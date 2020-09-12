@@ -1,257 +1,301 @@
-try:
-	# import the necessary packages
-	from imutils import paths
-	import numpy as np
-	import argparse
-	import random
-	import cv2
-	import os
-	import re
-	import pickle
-	from include.telegram_logger import *
-	from include.globals_and_functions import *
+import pickle
+import numpy as np
+from include.telegram_logger import *
+from include.globals_and_functions import *
 
-	telegramSendMessage('dataset_build started processing')
-
-	try:    #load the configuration file os the dataset
-		with open(dataset_datapath+dataset_config_train_filename,"rb") as fp:
-			dataset_config_train = pickle.load(fp)
-	except: #new dataset, config file does not exist
-		print("The dataset path lacks of a config-train file. Please run dataset_rawVideoProcess before trying to build")
-		exit()
-	try:    #load the configuration file os the dataset
-		with open(dataset_datapath+dataset_config_test_filename,"rb") as fp:
-			dataset_config_test = pickle.load(fp)
-	except: #new dataset, config file does not exist
-		print("The dataset path lacks of a config-test file. Please run dataset_rawVideoProcess before trying to build")
-		exit()
-
-	#Creates folder for the processed data
-	try:
-		if not os.path.exists(PROCESSED_DATA_FOLDER):
-			os.makedirs(PROCESSED_DATA_FOLDER)
-	except OSError:
-		print ('Error: Creating directory for building the dataset')
-		exit ()
-
-	try:    #Trys loading the config file from the processed data folder
-		with open(PROCESSED_DATA_FOLDER+"config-train","rb") as fp:
-			processedData_config_train = pickle.load(fp)
-
-		dataset_config_train = [item for item in dataset_config_train if item not in processedData_config_train]
-		processedData_config_train += dataset_config_train
-	except:     #first time building dataset, config file does not exist
-		processedData_config_train = dataset_config_train
-
-	try:    #Trys loading the config file from the processed data folder
-		with open(PROCESSED_DATA_FOLDER+"config-test","rb") as fp:
-			processedData_config_test = pickle.load(fp)
-
-		dataset_config_test = [item for item in dataset_config_test if item not in processedData_config_test]
-		processedData_config_test += dataset_config_test
-	except:     #first time building dataset, config file does not exist
-		processedData_config_test = dataset_config_test
-
-	#	video_sizes file simply contain how many frames each video contains. This is 
-	#	a required information for when loading the dataset correctly to the lstm,
-	#	so that two videos dont overlap in one batch
-	try:    #Trys loading the video_sizes file
-		with open(PROCESSED_DATA_FOLDER+video_sizes_filename_train,"rb") as fp:
-			video_sizes_train = pickle.load(fp)
-
-	except:     #first time building dataset, config file does not exist
-		video_sizes_train = []
-
-	#	video_sizes file simply contain how many frames each video contains. This is 
-	#	a required information for when loading the dataset correctly to the lstm,
-	#	so that two videos dont overlap in one batch
-	try:    #Trys loading the video_sizes file
-		with open(PROCESSED_DATA_FOLDER+video_sizes_filename_test,"rb") as fp:
-			video_sizes_test = pickle.load(fp)
-
-	except:     #first time building dataset, config file does not exist
-		video_sizes_test = []
+def calculate_dataset_statistics(data_mean, data_std, data_size):
+    """
+        This function is used to calculate mean and standart deviantion of the dataset
+        without loading the full dataset into memory, as it would be loaded astype float64
 
 
-	# If dataset_config is empty, there are no new videos to be built
-	if not dataset_config_train:
-		print("Train built is already up to date")
-	if not dataset_config_test:
-		print("Test built is already up to date")
+        The way used to calculate mean and std was:
+            1 - instead of calculating mean and std for all videos in the dataset, 
+            calculate mean and std for each video in the dataset
 
-	for path in dataset_config_train:
-		datapath = dataset_train_datapath + path.replace(".","")
+            2 - After this, calculate the joined mean and std of all videos, by
+                2.1 -  combined_mean = weighted average of all means
+                2.2 -  combined_std using the formula on https://www.statstodo.com/CombineMeansSDs_Pgm.php
+    """
+    #   If there is only on video, there is no meaning in combining multiple statistics
+    if len(data_size) == 1:
+        return data_mean, data_std
 
-		# load the number_of_frames file
-		with open(datapath+'/'+number_of_frames_filename,"rb") as fp:
-			number_of_frames = pickle.load(fp)
-			video_sizes_train.append(number_of_frames)
+    combined_mean = np.average(data_mean, axis=(0), weights=data_size)
 
-		# grab all image paths and create and orders it
-		imagePaths = list(paths.list_images(datapath))
-		imagePaths.sort(key=lambda f: int(re.sub('\D', '', f)))
+    tn = np.sum(data_size)
 
-		# split in training data and test data
-		# i = int(len(imagePaths) * TEST_DATA_RATIO)
-		trainPaths = imagePaths[:]
-		# testPaths = imagePaths[i:]
+    tx = np.array(data_mean)
+    for i in range(data_mean.shape[0]):
+        tx[i] = tx[i] * data_size[i]
+    tx = np.sum(tx, axis=0)
 
-		# define the datasets
-		datasets = [
-			("training", trainPaths, PROCESSED_DATA_FOLDER+"images_training")
-		]
+    txx = np.square(data_std)
+    for i in range(data_std.shape[0]):
+        txx[i] = txx[i] * data_size[i]-1
+        A = (np.square(data_mean)[i] * data_size[i])
+        txx[i] = txx[i] + A
+    txx = np.sum(txx, axis=0)
 
-		#load the audio presure data
-		St = np.load(datapath+'/'+AUDIO_DATA_NAME)
+    combined_std = np.sqrt((txx - (np.square(tx) / tn))/(tn))
 
-		# loop over the data splits
+    return combined_mean, combined_std
 
-		i = 0
+def normalize_dataset(data, mean, std):
+    """
+        Reshape dataset from (n,224*224*3) to (n,224,224,3)
+        Normalize dataset by subtracting mean and dividing by std
+    """
+    data = np.reshape(data, (data.shape[0],)+CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE).astype("float32")
 
-		for (dType, imagePaths, outputPath) in datasets:
+    data[:, :, :, 0] -= (mean[0])
+    data[:, :, :, 1] -= (mean[1])
+    data[:, :, :, 2] -= (mean[2])
 
-			j = 0
+    data[:, :, :, 0] /= (std[0])
+    data[:, :, :, 1] /= (std[1])
+    data[:, :, :, 2] /= (std[2])
 
-			#filedata
+    return data
 
-			# open the output file for writing
-			print("[INFO] building '{}' split... for ".format(dType), end = '')
-			print(path+'\0')
-		
-			# loop over all input images
-			for imagePath in imagePaths:
-			# load the input image
-				image = cv2.imread(imagePath)
+def dataset_build(train_videos, test_videos):
+    try:
+        #   --------------  Error checking
 
-				# create a flattened list of pixel values
-				idata = [np.array(x,dtype=np.uint8) for x in image.flatten()]
+        # load config file with all processed videos in disk
 
-				# extract two labels, one for each channel
-				ldata = np.array([St[i,0],St[i,1]],dtype=np.float32)
+        try:    #load the config file
+            with open(CONST_STR_DATASET_DATAPATH+CONST_STR_DATASET_CONFIG_FILENAME, "rb") as fp:
+                processed_videos = pickle.load(fp)
 
-				# idata = np.append(label,image,axis=0)
+        except:     #   new dataset, config file does not exist
+            print_error("There is no config file on system. We should run the dataset_process.py script before atempting to build it")
+            exit(1)
 
-				if (j==0):
-					outputdata = idata
-					outputlabel = ldata
-				else:
-					outputdata = np.vstack((outputdata,idata))
-					outputlabel = np.vstack((outputlabel,ldata))
+        #   Check if i'm passing a video that is not processed in the dataset
+        unknown_videos = [item for item in train_videos if item not in processed_videos]
+        if unknown_videos != []:
+            print_error("The following videos were not processed in the dataset:")
+            for unknown_video in unknown_videos:
+                print('\t'+unknown_video)
+            print_error("Please run dataset_process.py before atempting to build")
+            exit(1)
 
-				j+=1
-				i+=1
+        unknown_videos = [item for item in test_videos if item not in processed_videos]
+        if unknown_videos != []:
+            print_error("The following videos were not processed in the dataset:")
+            for unknown_video in unknown_videos:
+                print('\t'+unknown_video)
+            print_error("Please run dataset_process.py before atempting to build")
+            exit(1)
 
-			try:
-				#Before saving to disk, try loading the processed data already saved in disk
-				#This way, at the end of the prosesing, we shall simply stack the new data on top of the
-				#Already processed one
-			
-				loadedData = np.load(outputPath+"-img.npy")
-				loadedLabel = np.load(outputPath+"-lbl.npy")
+        #   Check if a video is beeing used for both test and train dataset
+        common_videos = [item for item in test_videos if item in train_videos]
+        if common_videos != []:
+            print_error("The following videos are being used for both train and test dataset. You should not train and test on same videos!")
 
-				outputdata = np.vstack((outputdata,loadedData))
-				outputlabel = np.vstack((outputlabel,loadedLabel))
+            for common_video in common_videos:
+                print('\t'+common_video)
+            print_error("Please reevaluate your data")
+            exit(1)
 
-			except:
-				pass
+        #   --------------  Build starting
+        #   This Loop:
+        #
+        #       get all number of frames:   train_number_of_frames
+        #       get all means and std:      train_mean, train_std
+        #       get all frames for dataset: input_train_data
+        #       get all outputs on dataset: output_train_data
+        #
+        #       Test and Train codes are the same, just duplicated
+        #
+        #   --------------   Train dataset
+        #
 
-			np.save(outputPath+"-img",outputdata)
-			np.save(outputPath+"-lbl",outputlabel)
+        print_info("Stasting building process for train dataset")
+        telegramSendMessage("Stasting building process for train dataset")
 
-	for path in dataset_config_test:
-		datapath = dataset_test_datapath + path.replace(".","")
+        train_number_of_frames = []     #   Vector with the total number of frames in each video. This is necessary to calculate a number of things such as total mean, std, data loading, etc...
+        first_video = True
+        for video_name in train_videos:
 
-		# load the number_of_frames file
-		with open(datapath+'/'+number_of_frames_filename,"rb") as fp:
-			number_of_frames = pickle.load(fp)
-			video_sizes_test.append(number_of_frames)
+            video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
 
-		# grab all image paths and create and orders it
-		imagePaths = list(paths.list_images(datapath))
-		imagePaths.sort(key=lambda f: int(re.sub('\D', '', f)))
+            #   Get total number of frames in video
+            with open(video_datapath+'/'+CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME, "rb") as fp:
+                number_of_frames = pickle.load(fp)
+            train_number_of_frames.append(number_of_frames)
 
-		# split in training data and test data
-		# i = int(len(imagePaths) * TEST_DATA_RATIO)
-		testPaths = imagePaths[:]
-		# testPaths = imagePaths[i:]
+            #   Get the statistics in the video
+            #   Put those in the train_mean and train_std ndarrays
+            with open(video_datapath+'/'+CONS_STR_DATASET_STATISTICS_FILENAME, "rb") as fp:
+                video_statistics = pickle.load(fp)
+            
+            video_statistics = np.asarray(video_statistics)
+            if first_video:
+                train_mean = video_statistics[0]
+                train_std = video_statistics[1]
+            else:
+                train_mean = np.vstack((train_mean, video_statistics[0]))
+                train_std = np.vstack((train_std, video_statistics[1]))
+       
+            #   Load numpy video data. 
+            video_data = np.load(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
 
-		# define the datasets
-		datasets = [
-			("testing", testPaths, PROCESSED_DATA_FOLDER+"images_testing")
-		]
+            if first_video:
+                #   Declare the train data. this is the input data used to train the model
+                input_train_data = video_data
+            else:
+                input_train_data = np.vstack((input_train_data, video_data))
 
-		#load the audio presure data
-		St = np.load(datapath+'/'+AUDIO_DATA_NAME)
+            #   Load numpy output data. 
+            audio_data = np.load(video_datapath+CONS_STR_DATASET_AUDIODATA_FILENAME)
 
-		# loop over the data splits
+            # If audio file is Stereo, I take the mean between both chanels and concatenate in one channel
+            try:
+                if audio_data.shape[1] == 2:
+                    print_info("Audio file from video "+video_name+" is stereo. Taking the average of both channels as output")
+                    audio_data = np.mean(audio_data, axis=1)
+            except:
+                pass
 
-		i = 0
+            if first_video:
+                #   Declare the train data. this is the input data used to train the model
+                output_train_data = audio_data
+            else:
+                output_train_data = np.concatenate((output_train_data, audio_data))
 
-		for (dType, imagePaths, outputPath) in datasets:
+            #   Last of all, switch of the "first video" variable
+            if first_video:
+                first_video = False
 
-			j = 0
+        #   Calculate mean and std for all dataset:
+        #   Dataset preprossesing. We normalize the dataset by subtracting mean and dividing by std
+        #
 
-			#filedata
+        train_combined_mean, train_combined_std = calculate_dataset_statistics(train_mean, train_std, train_number_of_frames)
 
-			# open the output file for writing
-			print("[INFO] building '{}' split... for ".format(dType), end = '')
-			print(path+'\0')
-		
-			# loop over all input images
-			for imagePath in imagePaths:
-			# load the input image
-				image = cv2.imread(imagePath)
+        input_train_data = normalize_dataset(input_train_data, train_combined_mean, train_combined_std)
 
-				# create a flattened list of pixel values
-				idata = [np.array(x,dtype=np.uint8) for x in image.flatten()]
+        # For some reason, axis 3 (colour) is fliped
+        input_train_data = np.flip(input_train_data, axis=3)
 
-				# extract two labels, one for each channel
-				ldata = np.array([St[i,0],St[i,1]],dtype=np.float32)
+        #
+        #   --------------   Test dataset
+        #
 
-				# idata = np.append(label,image,axis=0)
+        test_number_of_frames = []     #   Vector with the total number of frames in each video. This is necessary to calculate a number of things such as total mean, std, data loading, etc...
+        first_video = True
+        for video_name in test_videos:
 
-				if (j==0):
-					outputdata = idata
-					outputlabel = ldata
-				else:
-					outputdata = np.vstack((outputdata,idata))
-					outputlabel = np.vstack((outputlabel,ldata))
+            video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
 
-				j+=1
-				i+=1
+            #   Get total number of frames in video
+            with open(video_datapath+'/'+CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME, "rb") as fp:
+                number_of_frames = pickle.load(fp)
+            test_number_of_frames.append(number_of_frames)
 
-			try:
-				#Before saving to disk, try loading the processed data already saved in disk
-				#This way, at the end of the prosesing, we shall simply stack the new data on top of the
-				#Already processed one
-			
-				loadedData = np.load(outputPath+"-img.npy")
-				loadedLabel = np.load(outputPath+"-lbl.npy")
+            #   Get the statistics in the video
+            #   Put those in the train_mean and train_std ndarrays
+            with open(video_datapath+'/'+CONS_STR_DATASET_STATISTICS_FILENAME, "rb") as fp:
+                video_statistics = pickle.load(fp)
+            
+            video_statistics = np.asarray(video_statistics)
+            if first_video:
+                test_mean = video_statistics[0]
+                test_std = video_statistics[1]
+            else:
+                test_mean = np.vstack((test_mean, video_statistics[0]))
+                test_std = np.vstack((test_std, video_statistics[1]))
+       
+            #   Load numpy video data. 
+            video_data = np.load(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
 
-				outputdata = np.vstack((outputdata,loadedData))
-				outputlabel = np.vstack((outputlabel,loadedLabel))
+            if first_video:
+                #   Declare the train data. this is the input data used to train the model
+                input_test_data = video_data
+            else:
+                input_test_data = np.vstack((input_test_data, video_data))
 
-			except:
-				pass
+            #   Load numpy output data.
+            audio_data = np.load(video_datapath+CONS_STR_DATASET_AUDIODATA_FILENAME)
 
-			np.save(outputPath+"-img",outputdata)
-			np.save(outputPath+"-lbl",outputlabel)
+            # If audio file is Stereo, I take the mean between both chanels and concatenate in one channel
+            try:
+                if audio_data.shape[1] == 2:
+                    print_info("Audio file from video "+video_name+" is stereo. Taking the average of both channels as output")
+                    audio_data = np.mean(audio_data, axis=1)
+            except:
+                pass
 
-	# Save the information of all videos on file 
-	with open(PROCESSED_DATA_FOLDER+"config-train","wb") as fp:
-		pickle.dump(processedData_config_train, fp)
-	with open(PROCESSED_DATA_FOLDER+"config-test","wb") as fp:
-		pickle.dump(processedData_config_test, fp)
+            if first_video:
+                #   Declare the train data. this is the input data used to train the model
+                output_test_data = audio_data
+            else:
+                output_test_data = np.concatenate((output_test_data, audio_data))
 
-	with open(PROCESSED_DATA_FOLDER+video_sizes_filename_train,"wb") as fp:
-		pickle.dump(video_sizes_train, fp)
-	with open(PROCESSED_DATA_FOLDER+video_sizes_filename_test,"wb") as fp:
-		pickle.dump(video_sizes_test, fp)
+            #   Last of all, switch of the "first video" variable
+            if first_video:
+                first_video = False
 
-	print("training and test data where processed and are ready to be used")
+        #   Calculate mean and std for all dataset:
+        #   Dataset preprossesing. We normalize the dataset by subtracting mean and dividing by std
+        #
+        test_combined_mean, test_combined_std = calculate_dataset_statistics(test_mean, test_std, test_number_of_frames)
 
-	telegramSendMessage('dataset_build ended successfully')
-except Exception as e:
+        input_test_data = normalize_dataset(input_test_data, test_combined_mean, test_combined_std)
 
-    telegramSendMessage('an error has occurred')
-    telegramSendMessage(str(e))
+        # For some reason, axis 3 (colour) is fliped
+        input_test_data = np.flip(input_test_data, axis=3)
+
+        #   Return the builded dataset
+        
+        print_info("Dataset built completed")
+        return input_train_data, output_train_data, input_test_data, output_test_data
+
+    except Exception as e:
+        print_error('An error has occurred')
+        print_error(str(e))
+        telegramSendMessage('[ERROR]: An error has occurred')
+        telegramSendMessage(str(e))
+
+
+if __name__ == "__main__":
+    #
+    #   Script for generation of the "folds", so that training process is made upon various different scenarios
+    #
+    from folds import *
+
+    #   Make directory to hold this folder information
+    try:
+        fold_path = CONST_STR_DATASET_FOLDS_DATAPATH
+        if not os.path.exists(fold_path):
+            os.makedirs(fold_path)
+    except OSError:
+        print_error("Could not make directory for fold '"+fold['name']+"'")
+        telegramSendMessage('Error: Creating directory')
+        exit()
+
+
+    for fold in folds:
+        telegramSendMessage("Creating fold "+str(fold['number']))
+        print_info("Creating fold "+str(fold['number']))
+
+        [
+            input_train_data,
+            output_train_data,
+            input_test_data,
+            output_test_data
+        ] = dataset_build(fold["training_videos"], fold["testing_videos"])
+
+        #   Save this dataset to the corresponding fold path
+        telegramSendMessage("Saving fold "+str(fold['number'])+" to disk")
+        print_info("Saving fold "+str(fold['number'])+" to disk")
+
+        np.save(fold_path+"input_training_data_"+fold['name'], input_train_data)
+        np.save(fold_path+"output_training_data_"+fold['name'], output_train_data)
+        np.save(fold_path+"input_testing_data_"+fold['name'], input_test_data)
+        np.save(fold_path+"output_testint_data_"+fold['name'], output_test_data)
+    
+    telegramSendMessage("Script ended sucessfully")
+    print_info("Script ended sucessfully")
