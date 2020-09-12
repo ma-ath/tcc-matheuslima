@@ -3,7 +3,7 @@ try:
     warnings.simplefilter(action='ignore', category=FutureWarning)
     import os                                   #
     #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    # Desativa alguns warnings a respeito da minha CPU
-    os.environ["CUDA_VISIBLE_DEVICES"]="0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_GPU
 
     from tensorflow import keras
     import numpy as np

@@ -1,4 +1,3 @@
-
 try:
     import cv2
     import numpy as np
@@ -232,6 +231,29 @@ try:
         #   Save the stacked frames numpy to the corresponding video folder
         print_info("Saving stacked frames data to "+video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
         np.save(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME, stacked_frames_array)
+
+    #Last step: Calculate mean and std for each video in dataset. Save this information in disk
+    for video_name in unprocessed_videos:
+        print_info("Loading numpy dataset for mean and std calculation")
+
+        #   Load numpy array
+        video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
+
+        video_data = np.load(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
+        video_data = np.reshape(video_data, (video_data.shape[0],)+CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE)
+
+        #   Calculate mean and std of video
+        mean = np.mean(video_data, axis=(0,1,2)).astype(float)
+        std = np.std(video_data, axis=(0,1,2)).astype(float)
+
+        statistics = [mean, std]
+
+        print("mean: "+'\t'+str(statistics[0]))
+        print("std: " +'\t'+str(statistics[1]))
+
+        #   Save it to a file
+        with open(video_datapath+CONS_STR_DATASET_STATISTICS_FILENAME, "wb") as fp:
+            pickle.dump(statistics, fp)
 
     # Save the information of all videos on file
     with open(CONST_STR_DATASET_DATAPATH+CONST_STR_DATASET_CONFIG_FILENAME, "wb") as fp:
