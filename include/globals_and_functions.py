@@ -40,6 +40,8 @@ CONS_STR_DATASET_STATISTICS_FILENAME = "/statistics"
 CONS_STR_DATASET_STACKED_FRAMES_FILENAME = "/imagedata.npy"
 CONST_STR_DATASET_FOLDS_DATAPATH = "./dataset/folds/"
 CONST_STR_DATASET_FEATURES_VGG16 = "vgg16/"
+CONST_STR_DATASET_FEATURES_RESNET50 = "resnet50/"
+CONST_STR_DATASET_FEATURES_INCEPTIONV3 = "inceptionV3/"
 
 CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE = (7, 7, 512)
 CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE = (5, 5, 2048)
@@ -47,7 +49,7 @@ CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE = (7, 7, 2048)
 
 CUDA_GPU = "0"
 
-
+# -----------------------
 TEST_DATA_RATIO = 0.75
 AUDIO_DATA_NAME = "audioPower.npy"
 PROCESSED_DATA_FOLDER = "processedData/"
@@ -114,7 +116,7 @@ def preprocess_image(image_array, usecache=False,train_or_test='train'):
 
     return image_array
 
-def loadDataset(test_only=False):
+def loadDatasetaa(test_only=False):
 
     """
     This is a simple function that loads the dataset
