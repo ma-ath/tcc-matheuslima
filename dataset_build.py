@@ -248,17 +248,16 @@ def dataset_build(train_videos, test_videos):
         # For some reason, axis 3 (colour) is fliped
         input_test_data = np.flip(input_test_data, axis=3)
 
-        #   Return the builded dataset
+        #   Return the builded dataset and the vectors with train and test video sizes
         
         print_info("Dataset built completed")
-        return input_train_data, output_train_data, input_test_data, output_test_data
+        return input_train_data, output_train_data, input_test_data, output_test_data, train_number_of_frames, test_number_of_frames
 
     except Exception as e:
         print_error('An error has occurred')
         print_error(str(e))
         telegramSendMessage('[ERROR]: An error has occurred')
         telegramSendMessage(str(e))
-
 
 if __name__ == "__main__":
     #
@@ -272,8 +271,8 @@ if __name__ == "__main__":
         if not os.path.exists(fold_path):
             os.makedirs(fold_path)
     except OSError:
-        print_error("Could not make directory for fold '"+fold['name']+"'")
-        telegramSendMessage('Error: Creating directory')
+        print_error("Could not make directory for folds")
+        telegramSendMessage("Error: Creating directory")
         exit()
 
 
@@ -285,7 +284,9 @@ if __name__ == "__main__":
             input_train_data,
             output_train_data,
             input_test_data,
-            output_test_data
+            output_test_data,
+            train_number_of_frames,
+            test_number_of_frames
         ] = dataset_build(fold["training_videos"], fold["testing_videos"])
 
         #   Save this dataset to the corresponding fold path
@@ -296,6 +297,8 @@ if __name__ == "__main__":
         np.save(fold_path+"output_training_data_"+fold['name'], output_train_data)
         np.save(fold_path+"input_testing_data_"+fold['name'], input_test_data)
         np.save(fold_path+"output_testint_data_"+fold['name'], output_test_data)
-    
+        np.save(fold_path+"nof_train_"+fold['name'], output_test_data)
+        np.save(fold_path+"nof_test_"+fold['name'], output_test_data)
+
     telegramSendMessage("Script ended sucessfully")
     print_info("Script ended sucessfully")
