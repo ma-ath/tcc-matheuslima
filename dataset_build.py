@@ -296,7 +296,7 @@ if __name__ == "__main__":
         np.save(fold_path+"input_training_data_"+fold['name'], input_train_data)
         np.save(fold_path+"output_training_data_"+fold['name'], output_train_data)
         np.save(fold_path+"input_testing_data_"+fold['name'], input_test_data)
-        np.save(fold_path+"output_testint_data_"+fold['name'], output_test_data)
+        np.save(fold_path+"output_testing_data_"+fold['name'], output_test_data)
         np.save(fold_path+"nof_train_"+fold['name'], output_test_data)
         np.save(fold_path+"nof_test_"+fold['name'], output_test_data)
 

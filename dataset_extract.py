@@ -28,11 +28,11 @@ def extract_folds_features(argv):
     #   Check if network is suported
     #   We now only have vgg16
     if not((args.network == "vgg16") or (args.network == "inceptionV3") or (args.network == "resnet50")):
-        print_error("We currently only suport the VGG16 model")
+        print_error("We currently only suport the followuing models: vgg16, inceptionv3 and resnet50")
         exit(1)
     
     if not ((args.pooling == "GAP") or (args.pooling == "GMP") or (args.pooling == "None")):
-        print_error("We currently only suport GAP layer")
+        print_error("We currently only suport GAP, GMP and None layers")
         exit(1)
     
     #   ------------------  Create extracting model
@@ -78,7 +78,12 @@ def extract_folds_features(argv):
     print_info("Starting extracting process with network "+args.network+" and pooling layer "+args.pooling)
 
     #   Create folder to host all extracted models
-    extraction_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_VGG16
+    if (args.network == "vgg16"):
+        extraction_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_VGG16
+    if (args.network == "inceptionV3"):
+        extraction_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_INCEPTIONV3
+    if (args.network == "resnet50"):
+        extraction_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_RESNET50
 
     try:
         if not os.path.exists(extraction_datapath):
@@ -125,8 +130,8 @@ def extract_folds_features(argv):
 
         #Save the extracted features
         print_info("Saving training features")
-        telegramSendMessage("Saving training features")        
-        np.save(extraction_datapath+"input_training_data_"+args.network+"_"+args.pooling+"_"+fold["name"], train_features)
+        telegramSendMessage("Saving training features")
+        np.save(extraction_datapath+"input_training_data_"+args.pooling+"_"+fold["name"], train_features)
 
         ###   Repeat to test dataset
         print_info("Extracting testing features")
@@ -144,7 +149,7 @@ def extract_folds_features(argv):
         #Save the extracted features
         print_info("Saving testing features")
         telegramSendMessage("Saving testing features")
-        np.save(extraction_datapath+"input_testing_data_"+args.network+"_"+args.pooling+"_"+fold["name"], test_features)
+        np.save(extraction_datapath+"input_testing_data_"+args.pooling+"_"+fold["name"], test_features)
 
     print_info("Extraction script end")
     telegramSendMessage("Extraction script end")

@@ -5,7 +5,7 @@ try:
     from os import listdir
     from os.path import isfile, join
     import scipy.io.wavfile
-    from math import floor, log
+    from math import floor
     import re
     import pickle
     from imutils import paths
