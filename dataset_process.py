@@ -1,3 +1,6 @@
+#
+#   I did not made a manual memory free in this script
+#
 try:
     import cv2
     import numpy as np
