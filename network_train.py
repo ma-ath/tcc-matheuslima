@@ -23,13 +23,6 @@ import pandas
 
 from keras.utils.vis_utils import plot_model
 
-#b,c,d,e = loadDataset("fold_1", CNN = None, Pooling = "GAP", LSTM = True, overlap_windows=False)
-
-#print(b.shape)
-#print(c.shape)
-#print(d.shape)
-#print(e.shape)
-
 def loadDataset(Fold_name,
                 CNN = "vgg16",
                 Pooling = "GAP",
@@ -160,27 +153,14 @@ def loadDataset(Fold_name,
         return training_images, training_labels, testing_images, testing_labels
     
     else:
-    """
-        ### NADA AQUI ESTÁ FEITO
-
         # This part of the code was base on the Tensorflow LSTM example:
         # https://www.tensorflow.org/tutorials/structured_data/time_series
         #
-        if features_only == False:
-            training_images = np.reshape(training_images,(training_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
-            testing_images = np.reshape(testing_images,(testing_images.shape[0],image_shape[0]*image_shape[1]*image_shape[2]))
-        elif pooling_input == None:
-            training_images = np.reshape(training_images,(training_images.shape[0],VGG16_OUTPUT_SHAPE[0]*VGG16_OUTPUT_SHAPE[1]*VGG16_OUTPUT_SHAPE[2]))
-            testing_images = np.reshape(testing_images,(testing_images.shape[0],VGG16_OUTPUT_SHAPE[0]*VGG16_OUTPUT_SHAPE[1]*VGG16_OUTPUT_SHAPE[2]))
-        elif pooling_input == 'GAP' or 'GMP':
-            training_images = np.reshape(training_images,(training_images.shape[0],VGG16_OUTPUT_SHAPE[2]))
-            testing_images = np.reshape(testing_images,(testing_images.shape[0],VGG16_OUTPUT_SHAPE[2]))
-
-
         if causal_prediction == True:
             target_size = 0     # If causal, we want to predict the audio volume at the last image of the batch
         else:
-            target_size = int((timeSteps-1)/2)  # If non causal, we want to predict the volume at the center of the batch
+            target_size = int((time_steps-1)/2)  # If non causal, we want to predict the volume at the center of the batch
+
 
         X_train = []
         Y_train = []
@@ -188,82 +168,81 @@ def loadDataset(Fold_name,
         Y_test = []
 
         # ----------------------- TRAINS SET ----------------------- # 
-        # Loads the video_sizes array. This array contains what is the size of each video
-        # on X_test. Knowing this, we can manage not to mix the videos on transition
-        with open(PROCESSED_DATA_FOLDER+video_sizes_filename_train,"rb") as fp:
-            number_of_frames = pickle.load(fp)
-
-        number_of_frames = number_of_frames[::-1]   # I have to reverse this array
 
         # Window loop
-        frame_sum = 0   # This variable keeps track of what frame in X_train is being processed now
-        for i in range(len(number_of_frames)):  # For each video in X_train . . .
+        frame_sum = 0   # This variable keeps track of what frame in training_images is being processed now
+        for i in range(len(training_nof)):  # For each video in training_images . . .
 
-            start_index = frame_sum+timeSteps
-            end_index = frame_sum+number_of_frames[i]
+            start_index = frame_sum+time_steps
+            end_index = frame_sum+training_nof[i]
             for j in range(start_index, end_index):     # For each window in this video . . .
-                indices = range(j-timeSteps, j)
+                indices = range(j-time_steps, j)
                 
-                if features_only == False:
-                    X_train.append(np.reshape(training_images[indices],(timeSteps,)+image_shape))
-                elif pooling_input == None:
-                    X_train.append(np.reshape(training_images[indices],(timeSteps,)+VGG16_OUTPUT_SHAPE))
-                elif pooling_input == 'GAP' or 'GMP':
-                    X_train.append(np.reshape(training_images[indices],(timeSteps,VGG16_OUTPUT_SHAPE[2])))
+                if CNN == None:
+                    X_train.append(np.reshape(training_images[indices], (time_steps,)+CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE))
+                elif Pooling == None:
+                    if CNN == "vgg16":
+                        X_train.append(np.reshape(training_images[indices], (time_steps,)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE))
+                    elif CNN == "resnet50":
+                        X_train.append(np.reshape(training_images[indices], (time_steps,)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE))
+                    elif CNN == "inceptionV3":
+                        X_train.append(np.reshape(training_images[indices], (time_steps,)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE))
+                elif (Pooling == 'GAP') or (Pooling == 'GMP'):
+                    if CNN == "vgg16":
+                        X_train.append(np.reshape(training_images[indices], (time_steps, CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2])))
+                    elif CNN == "resnet50":
+                        X_train.append(np.reshape(training_images[indices], (time_steps, CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2])))
+                    elif CNN == "inceptionV3":
+                        X_train.append(np.reshape(training_images[indices], (time_steps, CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2])))
                 Y_train.append(training_labels[j-target_size])
 
-            frame_sum += number_of_frames[i]
+            frame_sum += training_nof[i]
         # -----------------------TEST SET ----------------------- # 
-        # Loads the video_sizes array. This array contains what is the size of each video
-        # on X_test. Knowing this, we can manage not to mix the videos on transition
-        with open(PROCESSED_DATA_FOLDER+video_sizes_filename_test,"rb") as fp:
-            number_of_frames = pickle.load(fp)
-
-        number_of_frames = number_of_frames[::-1]   # I have to reverse this array
-
         # Window loop
+        frame_sum = 0   # This variable keeps track of what frame in testing_images is being processed now
+        for i in range(len(testing_nof)):  # For each video in testing_images . . .
 
-        frame_sum = 0   # This variable keeps track of what frame in X_train is being processed now
-        for i in range(len(number_of_frames)):  # For each video in X_train . . .
-
-            start_index = frame_sum+timeSteps
-            end_index = frame_sum+number_of_frames[i]
+            start_index = frame_sum+time_steps
+            end_index = frame_sum+testing_nof[i]
             for j in range(start_index, end_index):     # For each window in this video . . .
-                indices = range(j-timeSteps, j)
-
-                if features_only == False:
-                    X_test.append(np.reshape(testing_images[indices],(timeSteps,)+image_shape))
-                elif pooling_input == None:
-                    X_test.append(np.reshape(testing_images[indices],(timeSteps,)+VGG16_OUTPUT_SHAPE))
-                elif pooling_input == 'GAP' or 'GMP':
-                    X_test.append(np.reshape(testing_images[indices],(timeSteps,VGG16_OUTPUT_SHAPE[2])))
+                indices = range(j-time_steps, j)
+                
+                if CNN == None:
+                    X_test.append(np.reshape(testing_images[indices], (time_steps,)+CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE))
+                elif Pooling == None:
+                    if CNN == "vgg16":
+                        X_test.append(np.reshape(testing_images[indices], (time_steps,)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE))
+                    elif CNN == "resnet50":
+                        X_test.append(np.reshape(testing_images[indices], (time_steps,)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE))
+                    elif CNN == "inceptionV3":
+                        X_test.append(np.reshape(testing_images[indices], (time_steps,)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE))
+                elif (Pooling == 'GAP') or (Pooling == 'GMP'):
+                    if CNN == "vgg16":
+                        X_test.append(np.reshape(testing_images[indices], (time_steps, CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2])))
+                    elif CNN == "resnet50":
+                        X_test.append(np.reshape(testing_images[indices], (time_steps, CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2])))
+                    elif CNN == "inceptionV3":
+                        X_test.append(np.reshape(testing_images[indices], (time_steps, CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2])))
                 Y_test.append(testing_labels[j-target_size])
 
-            frame_sum += number_of_frames[i]
+            frame_sum += testing_nof[i]
+
 
         X_train = np.array(X_train).astype("float32")
         Y_train = np.array(Y_train).astype("float32")
         X_test = np.array(X_test).astype("float32")
         Y_test = np.array(Y_test).astype("float32")
 
-        # For some reason channels red and blue (axis 4) are flipped
-        if pooling_input == None:
-            X_train = np.flip( X_train, axis=4 )
-            X_test = np.flip( X_test, axis=4 )
-    """
-    #return X_train,Y_train,X_test,Y_test
-
-
+        return X_train, Y_train, X_test, Y_test
 try:
-    print(a)
     """
         This script run throught all networks and folds variations and trains then one after another
     """
 
     # ---------------------------- TRAINING ---------------------------- #
     for fold in folds:
-        print_info("Stating training in fold "+fold['number'])
-        telegramSendMessage("Stating training in fold "+fold['number'])
+        print_info("Stating training in fold "+str(fold['number']))
+        telegramSendMessage("Stating training in fold "+str(fold['number']))
 
         for network in networks:
             # -------------------------- DATASET LOAD -------------------------- #
@@ -271,15 +250,17 @@ try:
             telegramSendMessage("Loading "+fold['name']+" dataset for model "+network['model_name'])
 
             [
-            X_train, 
+            X_train,
             Y_train,
             X_test,
             Y_test
-            ] = loadDatasetLSTM(causal_prediction=network['dataset_causal_prediction'],
-                            overlap_windows=network['dataset_overlap_windows'],
-                            timeSteps=network['time_steps'],
-                            features_only=network['features_input'],
-                            pooling_input=network['pooling_input'])
+            ] = loadDataset(Fold_name=fold['name'],
+                            CNN=network['cnn'],
+                            Pooling=network['pooling'],
+                            LSTM=network['lstm'],
+                            time_steps=network['time_steps'],
+                            overlap_windows=network['overlap_windows'],
+                            causal_prediction=network['causal_prediction'])
 
             telegramSendMessage('Starting training process for '+network['model_name'])
         
@@ -290,12 +271,15 @@ try:
 
             # Create a folder in cache to save the results from the running test
             # Folder name is specifyed in the model_name key of dictionary
+
+            results_datapath = CONST_STR_RESULTS_DATAPATH+fold['name']+'/'+network['model_name']
+
             try:
-                if not os.path.exists('./cache/'+network['model_name']):
-                    os.makedirs('./cache/'+network['model_name'])
+                if not os.path.exists(results_datapath):
+                    os.makedirs(results_datapath)
             except OSError:
-                print ('Error: Creating directory')
-                exit ()
+                print_error('Error: Creating directory to save training data')
+                exit(1)
 
             # This is the learning rate scheduler, it changes the learning rate of fit
             # depending in the current epoch
@@ -309,13 +293,14 @@ try:
 
             learning_schedule = LearningRateScheduler(scheduler)
 
-            model_checkpoint = ModelCheckpoint('./cache/'+network['model_name']+'/model_checkpoint.hdf5',
-                                                    monitor='val_loss',
-                                                    verbose=2,save_best_only=True,
-                                                    save_weights_only=False,
-                                                    mode='auto')
+            model_checkpoint = ModelCheckpoint(results_datapath+'/model_checkpoint.hdf5',
+                                                monitor='val_loss',
+                                                verbose=2,
+                                                save_best_only=True,
+                                                save_weights_only=False,
+                                                mode='auto')
 
-            callback = [learning_schedule,model_checkpoint]
+            callback = [learning_schedule, model_checkpoint]
 
             #Training Optimizer
             opt = network['optimizer']
@@ -324,26 +309,25 @@ try:
             if network['loss_function'] == 'mse':
                 loss_function = mean_squared_error
             else:
-                print("[Warning]: loss function does not suported. Using default (mse)")
+                print_warning("Loss function specified in model is not suported. Using default (mse)")
                 loss_function = mean_squared_error
 
             #Model Compile
-            model.compile(optimizer=opt, loss=loss_function) #, metrics=['accuracy'])  #We can not use accuracy as a metric in this model
+            model.compile(optimizer=opt, loss=loss_function) #  We can not use accuracy as a metric in this model
 
             #Show network model in terminal and save it to disk
-            netconfig_file = open('./cache/'+network['model_name']+'/network_configuration.txt', 'w')
-            print('Fitting the following model:')
+            netconfig_file = open(results_datapath+'/network_configuration.txt', 'w')
+            print_info('Fitting the following model:')
             netconfig_file.write('Fitting the following model:\n')
             for key, value in network.items():
-                print(key, ' : ', value)
-                netconfig_file.write(str(key)+' : '+str(value)+'\n')
+                print('\t'+key,': ', value)
+                netconfig_file.write('\t'+str(key)+': '+str(value)+'\n')
             model.summary()
             plot_model(model,
-                        to_file='./cache/'+network['model_name']+'/model_plot.png',
+                        to_file=results_datapath+'/model_plot.png',
                         show_shapes=True,
                         show_layer_names=True)
             netconfig_file.close()
-
 
             #Fit model
 
@@ -351,20 +335,20 @@ try:
                 X_train,
                 Y_train,
                 batch_size=network['batch_size'],
-                epochs=network['number_of_epochs'],
+                epochs=network['epochs'],
                 verbose=2,
                 validation_data=(X_test, Y_test),
                 callbacks=callback)
 
             telegramSendMessage('Network '+network['model_name']+' training process ended successfully')
 
-            save_model(model,network['model_name'])                   #Save the calculated model to disk
-            save_weights(model,network['model_name'])                 #Save the calculated weigths to disk
+            save_model(model, results_datapath)                   #Save the calculated model to disk
+            save_weights(model, results_datapath)                 #Save the calculated weigths to disk
 
             #Save the fitting history to disk
             fit_history_df = pandas.DataFrame(fit_history.history)
 
-            with open('cache/'+network['model_name']+'/fit_history.csv', mode='w') as f:
+            with open(results_datapath+'/fit_history.csv', mode='w') as f:
                 fit_history_df.to_csv(f)
             
             telegramSendMessage('Saving vizualization data for '+network['model_name'])
@@ -376,73 +360,54 @@ try:
 
             # Prepare a predictionSamples vector, in order to plot it
             for i in range(X_test.shape[0]):
-                X_predict = np.expand_dims(X_test[i],0)
-        
-                prediction = model.predict(X_predict,batch_size=network['batch_size'])
-
-                newshape = (network['time_steps'],1)
-
+                X_predict = np.expand_dims(X_test[i], 0)
+                prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                newshape = (network['time_steps'], 1)
                 prediction = prediction[0]
-
                 Y_predicted.append(prediction)
-
             Y_predicted = np.array(Y_predicted).astype("float32")
-
             PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+            newshape = (PLOT_SIZE, 1)
+            Y_predicted = np.reshape(Y_predicted, newshape)
+            Y_vtest = np.reshape(Y_test, newshape)
 
-            newshape = (PLOT_SIZE,1)
+            np.save(results_datapath+'/visualization-real-lbl.npy', Y_vtest[0:PLOT_SIZE])
+            np.save(results_datapath+'/visualization-prediction-lbl.npy', Y_predicted)
 
-            Y_predicted = np.reshape(Y_predicted,newshape)
-
-            Y_vtest = np.reshape(Y_test,newshape)
-
-            np.save('cache/'+network['model_name']+'/visualization-real-lbl.npy',Y_vtest[0:PLOT_SIZE])
-            np.save('cache/'+network['model_name']+'/visualization-prediction-lbl.npy',Y_predicted)
-
-            plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+network['model_name'])
-
+            plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test.png')
             # ------------------- predicte over train set ------------------- #
             Y_predicted = []
             Y_vtest = Y_train
 
             # Prepare a predictionSamples vector, in order to plot it
             for i in range(X_train.shape[0]):
-                X_predict = np.expand_dims(X_train[i],0)
-        
-                prediction = model.predict(X_predict,batch_size=network['batch_size'])
-
-                newshape = (network['time_steps'],1)
-
+                X_predict = np.expand_dims(X_train[i], 0)
+                prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                newshape = (network['time_steps'], 1)
                 prediction = prediction[0]
-
                 Y_predicted.append(prediction)
-
             Y_predicted = np.array(Y_predicted).astype("float32")
-
             PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+            newshape = (PLOT_SIZE, 1)
+            Y_predicted = np.reshape(Y_predicted, newshape)
 
-            newshape = (PLOT_SIZE,1)
+            Y_vtest = np.reshape(Y_train, newshape)
 
-            Y_predicted = np.reshape(Y_predicted,newshape)
+            np.save(results_datapath+'/visualization-real-train-lbl.npy', Y_vtest[0:PLOT_SIZE])
+            np.save(results_datapath+'/visualization-prediction-train-lbl.npy', Y_predicted)
 
-            Y_vtest = np.reshape(Y_train,newshape)
-
-            np.save('cache/'+network['model_name']+'/visualization-real-train-lbl.npy',Y_vtest[0:PLOT_SIZE])
-            np.save('cache/'+network['model_name']+'/visualization-prediction-train-lbl.npy',Y_predicted)
-
-            plotAudioPowerWithPrediction(Y_vtest,Y_predicted,to_file=True,image_path='cache/'+network['model_name'],image_name='/prediction_Train.png')
-
-            plotTrainingLoss(fit_history,to_file=True,image_path='cache/'+network['model_name'])
+            plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train.png')
 
             # summarize history for loss
-
+            plotTrainingLoss(fit_history,to_file=True,image_path=results_datapath)
             #------------ SAVE SOME VISUALIZATION DATA ------------ #    
-
-
     # ---------------------------- TRAINING ---------------------------- #
 
     telegramSendMessage('All network models were trained successfully')
+    exit(0)
 except Exception as e:
 
-    telegramSendMessage('an error has occurred')
+    print_error('An error has occurred')
+    print_error(str(e))
+    telegramSendMessage('[ERROR]: An error has occurred')
     telegramSendMessage(str(e))

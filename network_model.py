@@ -1,115 +1,102 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import keras
-from keras.applications.vgg16 import VGG16
-from keras.layers import Conv3D, GlobalAveragePooling2D, GlobalMaxPooling2D,Dense, Input, Flatten, ConvLSTM2D, LSTM, TimeDistributed, BatchNormalization
-from keras.utils.vis_utils import plot_model
-from keras.models import Model, Sequential
-from tensorflow.keras import regularizers
+
+from keras.layers import Input, LSTM, TimeDistributed, Dense
+from keras.models import Model
+from keras import regularizers
+
 from include.globals_and_functions import *
 
 def networkModel(network):
-
-    if network['features_input'] == False:
-        inputs = Input(shape=(network['time_steps'],)+image_shape)
-
-        convolutional_layer = VGG16(weights='imagenet', include_top=False,input_shape=image_shape)
-        for layer in convolutional_layer.layers[:]:
-            layer.trainable = False     #Freezes all layers in the vgg16
-    
-        vgg16_time = TimeDistributed(convolutional_layer,name='VGG16')(inputs)
-    else:
-        if network['pooling_input'] == None:
-            inputs = Input(shape=(network['time_steps'],)+VGG16_OUTPUT_SHAPE)         
-        elif network['pooling_input'] == 'GAP' or 'GMP':
-            inputs = Input(shape=(network['time_steps'],VGG16_OUTPUT_SHAPE[2]))
-        vgg16_time = inputs
-
-    if network['rcnn_type'] == 'convlstm':
-        rcnn = ConvLSTM2D(return_sequences = True,
-                        kernel_size=network['rcnn_kernel'],
-                        filters=network['rcnn_filters'],
-                        padding='valid',
-                        data_format='channels_last',
-                        activation=network['rcnn_activation'])(vgg16_time)
-
-        if network['pooling'] == 'GAP':
-            POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(rcnn)
-        elif network['pooling'] == 'GMP':
-            POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(rcnn)
-
-        FC = TimeDistributed(Dense(network['fc_nlinear_size'],
-                                    activation=network['fc_nlinear_activation'],
-                                    name='dense_nlinear'),
-                                    name='FC_nonlinear')(POOLING)
-
-        outputs = TimeDistributed(Dense(1, activation='linear', name='dense_1'),name='FC_linear')(FC)
-
-    elif network['rcnn_type'] == 'lstm':
+    #
+    #   Function that returns the model for training
+    #
+    if network['lstm']:
         #
         #   This LSTM Model is based on the Paper "Quo Vadis, action recognition? A new model and the kinetics dataset"
         #
-        if network['pooling_input'] == None:
-            if network['pooling'] == 'GAP':
-                POOLING = TimeDistributed(GlobalAveragePooling2D(data_format=None),name='GAP')(vgg16_time)
-            elif network['pooling'] == 'GMP':
-                POOLING = TimeDistributed(GlobalMaxPooling2D(data_format=None),name='GMP')(vgg16_time)
-
-            rcnn = LSTM(network['lstm_units'],dropout=network['lstm_dropout'])(POOLING)#(normalization)       
-
+        if (network['cnn'] == None):
+            #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset
+            print_error("Erro in declaration of model "+network['model_name'])
+            print_error("Your model has to have a specified cnn layer")
+            exit(1)
+        #   ------- Input layer -------   #
+        if (network['pooling'] == None):
+            if (network['cnn'] == 'vgg16'):
+                layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE)
+            if (network['cnn'] == 'resnet50'):
+                layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE)
+            if (network['cnn'] == 'inceptionV3'):
+                layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE)
         else:
-            rcnn = LSTM(network['lstm_units'],dropout=network['lstm_dropout'])(vgg16_time)   
+            if (network['cnn'] == 'vgg16'):
+                layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2]))
+            if (network['cnn'] == 'resnet50'):
+                layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2]))
+            if (network['cnn'] == 'inceptionV3'):
+                layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2]))
 
-        if network['hidden_fc'] == True:
-            FC = Dense(network['fc_nlinear_size'],
-                        activation=network['fc_nlinear_activation'],
-                        name='dense_nlinear',activity_regularizer=network['fc_nlinear_activity_regularizer'])(rcnn)
+        #   ------- LSTM layer -------   #
 
-            if network['overlaping_window'] == False:
-                outputs = Dense(network['time_steps'], activation='linear', name='dense_out')(FC)
+        layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_input)
+
+        #   ------- Hidden FC layer -------   #
+
+        if network['hiddenfc']:
+
+            layer_hidden_fc = Dense(network['hiddenfc_size'],
+                        activation=network['hiddenfc_activation'],
+                        activity_regularizer=network['hiddenfc_activity_regularizer'])(layer_rnn)
+
+            #   ------- Output layer -------   #
+            if network['overlap_windows']:
+                layer_output = Dense(1, activation='linear')(layer_hidden_fc)
             else:
-                outputs = Dense(1, activation='linear', name='dense_out')(FC)
+                layer_output = Dense(network['time_steps'], activation='linear')(layer_hidden_fc)
         else:
-            if network['overlaping_window'] == False:
-                outputs = Dense(network['time_steps'], activation='linear', name='dense_out')(rcnn)
+            if network['overlap_windows']:
+                layer_output = Dense(1, activation='linear')(layer_rnn)
             else:
-                outputs = Dense(1, activation='linear', name='dense_out')(rcnn)
+                layer_output = Dense(network['time_steps'], activation='linear')(layer_rnn)
+    else:
+        if (network['cnn'] == None):
+            #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset
+            print_error("Erro in declaration of model "+network['model_name'])
+            print_error("Your model has to have a specified cnn layer")
+            exit(1)
 
-    elif network['rcnn_type'] == 'no_rnn':
-
-        if network['features_input'] == False:
-            inputs = Input(shape=image_shape)
-
-            convolutional_layer = VGG16(weights='imagenet', include_top=False,input_shape=image_shape)
-            for layer in convolutional_layer.layers[:]:
-                layer.trainable = False     #Freezes all layers in the vgg16
-        
-            vgg16_time = convolutional_layer(inputs)
+        if (network['pooling'] == None):
+            if (network['cnn'] == 'vgg16'):
+                layer_input = Input(shape=CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE)
+            if (network['cnn'] == 'resnet50'):
+                layer_input = Input(shape=CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE)
+            if (network['cnn'] == 'inceptionV3'):
+                layer_input = Input(shape=CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE)
         else:
-            inputs = Input(shape=VGG16_OUTPUT_SHAPE)
-            vgg16_time = inputs
+            if (network['cnn'] == 'vgg16'):
+                layer_input = Input(shape=[CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2]])
+            if (network['cnn'] == 'resnet50'):
+                layer_input = Input(shape=[CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2]])
+            if (network['cnn'] == 'inceptionV3'):
+                layer_input = Input(shape=[CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2]])
 
-        if network['pooling'] == 'GAP':
-            POOLING = GlobalAveragePooling2D(data_format=None)(vgg16_time)
-        elif network['pooling'] == 'GMP':
-            POOLING = GlobalMaxPooling2D(data_format=None)(vgg16_time)
-    
-        if network['hidden_fc'] == True:
-            FC = Dense(network['fc_nlinear_size'],
-                        activation=network['fc_nlinear_activation'],
-                        name='dense_nlinear',activity_regularizer=network['fc_nlinear_activity_regularizer'])(POOLING)
+        #   ------- Hidden FC layer -------   #
+        if network['hiddenfc']:
 
-            outputs = Dense(1, activation='linear', name='dense_out')(FC)
+            layer_hidden_fc = Dense(network['hiddenfc_size'],
+                        activation=network['hiddenfc_activation'],
+                        activity_regularizer=network['hiddenfc_activity_regularizer'])(layer_input)
+
+            #   ------- Output layer -------   #
+            layer_output = Dense(1, activation='linear')(layer_hidden_fc)
+            
         else:
-            outputs = Dense(1, activation='linear', name='dense_out')(POOLING)
+            layer_output = Dense(1, activation='linear')(layer_input)
 
-
-    model = Model(inputs=inputs, outputs=outputs)
+    model = Model(inputs=layer_input, outputs=layer_output)
 
     return model
-    #Colocar uma time distributed na camada FC
-    #Olhar a ResNet/colocar um bypass direto da entrada pra saída da lstm
-    #Fazer a LSTM funcionar
 
 if __name__ == "__main__":
     from keras.optimizers import Adam
@@ -121,23 +108,11 @@ if __name__ == "__main__":
 
         model = networkModel(network)
 
-        #Training Optimizer
-        opt = network['optimizer']
-
-        #Loss function to minimize
-        if network['loss_function'] == 'mse':
-            loss_function = mean_squared_error
-        else:
-            print("[Warning]: loss function does not suported. Using default (mse)")
-            loss_function = mean_squared_error
-
-        model.compile(optimizer=opt, loss=loss_function) #, metrics=['accuracy'])  #We can not use accuracy as a metric in this model
-
-        #Show network model in terminal
-        print('Fitting the following model:')
         for key, value in network.items():
             print(key, ' : ', value)
+
         model.summary()
+
         plot_model(model,show_shapes=True, show_layer_names=True)
       
 def networkModel_leomazza(image_shape):
@@ -152,7 +127,11 @@ def networkModel_leomazza(image_shape):
     #   4º - 1 Fully Connected layer (128)
     #   5º - 1 Fully Connected output layer (2)
     # 
-    # Optmization is made with an Adam optimizer, learning_schedule = [0.001, 0.0003, 9e-05] 
+    # Optmization is made with an Adam optimizer, learning_schedule = [0.001, 0.0003, 9e-05]
+    #
+    #   I DO NOT use this function anywhere in the code, and is here to documentation porposues
+    #   This function is heavely un-optimized and cannot process the amount of data required in my work
+    #
     ##############################################################################
 
     # input_layer=Input(shape=image_shape)
@@ -164,7 +143,11 @@ def networkModel_leomazza(image_shape):
     #   Also, this layer is not trainable. we freeze all convolutional layers with
     #   the following for loop
 
-    convolutional_layer = VGG16(weights='imagenet', include_top=False,input_shape=image_shape)
+    from keras.applications.vgg16 import VGG16
+    from keras.models import Sequential
+    from keras.layers import GlobalAveragePooling2D, Dense
+
+    convolutional_layer = VGG16(weights='imagenet', include_top=False, input_shape=image_shape)
 
     model_layer = Sequential()
 
