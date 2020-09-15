@@ -105,7 +105,7 @@ def save_model(model, folder_path):
     json_string = model.to_json()
     if not os.path.isdir(folder_path):
         os.mkdir(folder_path)
-    open(os.path.join(folder_path,'architecture.json'), 'w').write(json_string)
+    open(os.path.join(folder_path, 'architecture.json'), 'w').write(json_string)
 
 def save_weights(model, folder_path):
     if not os.path.isdir(folder_path):
@@ -113,8 +113,8 @@ def save_weights(model, folder_path):
     model.save_weights(os.path.join(folder_path, 'model_weights.h5'), overwrite=True)
 
 def load_model(folder_path):
-    model = model_from_json(open(os.path.join('cache/'+folder_path, 'architecture.json')).read())
-    model.load_weights(os.path.join('cache/'+folder_path, 'model_weights.h5'))
+    model = model_from_json(open(os.path.join(folder_path, 'architecture.json')).read())
+    model.load_weights(os.path.join(folder_path, 'model_weights.h5'))
     return model
 
 #Function that returns if a program is installed at the machine
@@ -122,10 +122,8 @@ def is_tool(name):
     """
         Check whether `name` is on PATH and marked as executable.
     """
-
     # from whichcraft import which
     from shutil import which
-
     return which(name) is not None
 
 #Function that plots both power and time series of an audio at once
@@ -176,7 +174,7 @@ def plotAudioPowerWithPrediction(testSamples,predictedSamples,to_file=False,imag
 
     pass
 
-def plotTrainingLoss(history,to_file=False,image_path='.'):
+def plotTrainingLoss(history, to_file=False, image_path='.'):
     plt.close('all')
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
