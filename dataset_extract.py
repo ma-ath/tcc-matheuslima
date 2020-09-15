@@ -16,7 +16,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_GPU
 import numpy as np
-
+import gc
 
 def extract_folds_features(argv):
     #   Parse command line to read with which network should the script extract image information
@@ -150,6 +150,13 @@ def extract_folds_features(argv):
         print_info("Saving testing features")
         telegramSendMessage("Saving testing features")
         np.save(extraction_datapath+"input_testing_data_"+args.pooling+"_"+fold["name"], test_features)
+
+        #   Forcefully delete input datas from memory
+        del input_train_data
+        del input_test_data
+        del train_features
+        del test_features
+        gc.collect()
 
     print_info("Extraction script end")
     telegramSendMessage("Extraction script end")

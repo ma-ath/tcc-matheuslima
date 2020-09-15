@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 from include.telegram_logger import *
 from include.globals_and_functions import *
+import gc
 
 def calculate_dataset_statistics(data_mean, data_std, data_size):
     """
@@ -299,6 +300,15 @@ if __name__ == "__main__":
         np.save(fold_path+"output_testing_data_"+fold['name'], output_test_data)
         np.save(fold_path+"nof_train_"+fold['name'], train_number_of_frames)
         np.save(fold_path+"nof_test_"+fold['name'], test_number_of_frames)
+
+        #   Forcefully collect all garbage in memory 
+        del input_train_data
+        del output_train_data
+        del input_test_data
+        del output_test_data
+        del train_number_of_frames
+        del test_number_of_frames
+        gc.collect()
 
     telegramSendMessage("Script ended sucessfully")
     print_info("Script ended sucessfully")
