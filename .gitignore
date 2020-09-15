@@ -1,0 +1,15 @@
+cache/
+dataset/
+latex/
+processedData/
+postProcessedData/
+visualization/
+results/
+results-true/
+FEBE_VIDEOS/
+Code_backup/
+__pycache__/
+include/telegram_credentials.json
+*.log
+*.npy
+*.pylintrc
