@@ -21,8 +21,9 @@ import gc
 def extract_folds_features(argv):
     #   Parse command line to read with which network should the script extract image information
     parser = argparse.ArgumentParser(description='Receives the desired network model for extraction')
-    parser.add_argument('--network','-n', default="vgg16", help='The desired network. We only support vgg16, inceptionV3 and resnet50')
-    parser.add_argument('--pooling','-p', default="GAP", help='Used pooling layer. We support: Global Max Poolling [GAP], Global Average Pooling[GMP], None [None]')
+    parser.add_argument('--network', '-n', default="vgg16", help='The desired network. We only support vgg16, inceptionV3 and resnet50')
+    parser.add_argument('--pooling', '-p', default="GAP", help='Used pooling layer. We support: Global Max Poolling [GAP], Global Average Pooling[GMP], None [None]')
+    parser.add_argument('--fold', '-f', default="all", help='Select which fold to extract features')
     args = parser.parse_args()
     
     #   Check if network is suported
@@ -93,14 +94,80 @@ def extract_folds_features(argv):
         telegramSendMessage("Error: Creating directory")
         exit(1)
 
-    for fold in folds:
+    if args.fold == "all":
+        for fold in folds:
+            #   Load fold dataset
+            print_info("Loading dataset from "+fold["name"])
+            telegramSendMessage("Loading dataset from "+fold["name"])
+
+            try:
+                input_train_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_training_data_"+fold['name']+".npy")
+                input_test_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_testing_data_"+fold['name']+".npy")
+            except:
+                print_error("Could not find dataset. Did you build it?")
+                telegramSendMessage("Could not find dataset. Did you build it?")
+                exit(1)
+            
+            #   Extracting features of fold
+            print_info("Extracting training features")
+            telegramSendMessage("Extracting training features")
+
+            train_features = []
+
+            number_of_images = input_train_data.shape[0]
+            
+            for index in range(number_of_images):
+                #   Expand dimention of image from (224,224,3) to (1,224,224,3)
+                image = np.expand_dims(input_train_data[index], 0)
+
+                #   Pass image throught the model
+                image_feature = model.predict(image)
+
+                #   Append to the train_features array
+                train_features.append(image_feature)
+            
+            #Transform array into ndarray
+            train_features = np.array(train_features).astype("float32")
+            train_features = np.reshape(train_features, (number_of_images, output_shape[2]))
+
+            #Save the extracted features
+            print_info("Saving training features")
+            telegramSendMessage("Saving training features")
+            np.save(extraction_datapath+"input_training_data_"+args.pooling+"_"+fold["name"], train_features)
+
+            ###   Repeat to test dataset
+            print_info("Extracting testing features")
+            telegramSendMessage("Extracting testing features")
+
+            test_features = []
+            number_of_images = input_test_data.shape[0]
+            for index in range(number_of_images):
+                image = np.expand_dims(input_test_data[index], 0)
+                image_feature = model.predict(image)
+                test_features.append(image_feature)
+            test_features = np.array(test_features).astype("float32")
+            test_features = np.reshape(test_features, (number_of_images, output_shape[2]))
+
+            #Save the extracted features
+            print_info("Saving testing features")
+            telegramSendMessage("Saving testing features")
+            np.save(extraction_datapath+"input_testing_data_"+args.pooling+"_"+fold["name"], test_features)
+
+            #   Forcefully delete input datas from memory
+            del input_train_data
+            del input_test_data
+            del train_features
+            del test_features
+            gc.collect()
+    else:
+        fold_name = args.fold
         #   Load fold dataset
-        print_info("Loading dataset from "+fold["name"])
-        telegramSendMessage("Loading dataset from "+fold["name"])
+        print_info("Loading dataset from "+fold_name)
+        telegramSendMessage("Loading dataset from "+fold_name)
 
         try:
-            input_train_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_training_data_"+fold['name']+".npy")
-            input_test_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_testing_data_"+fold['name']+".npy")
+            input_train_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_training_data_"+fold_name+".npy")
+            input_test_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_testing_data_"+fold_name+".npy")
         except:
             print_error("Could not find dataset. Did you build it?")
             telegramSendMessage("Could not find dataset. Did you build it?")
@@ -131,7 +198,7 @@ def extract_folds_features(argv):
         #Save the extracted features
         print_info("Saving training features")
         telegramSendMessage("Saving training features")
-        np.save(extraction_datapath+"input_training_data_"+args.pooling+"_"+fold["name"], train_features)
+        np.save(extraction_datapath+"input_training_data_"+args.pooling+"_"+fold_name, train_features)
 
         ###   Repeat to test dataset
         print_info("Extracting testing features")
@@ -149,7 +216,7 @@ def extract_folds_features(argv):
         #Save the extracted features
         print_info("Saving testing features")
         telegramSendMessage("Saving testing features")
-        np.save(extraction_datapath+"input_testing_data_"+args.pooling+"_"+fold["name"], test_features)
+        np.save(extraction_datapath+"input_testing_data_"+args.pooling+"_"+fold_name, test_features)
 
         #   Forcefully delete input datas from memory
         del input_train_data
