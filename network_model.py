@@ -57,10 +57,14 @@ def networkModel(network):
                     layer_linear_output = TimeDistributed(Dense(network['time_steps'], activation='linear'))(layer_input)
 
             #   ------- LSTM layer -------   #
+            layer_rnn = LSTM(32, dropout=network['lstm_dropout'])(layer_linear_output)
+
+            #   ------- Output -------  #
             if network['overlap_windows']:
-                layer_output = LSTM(1, dropout=network['lstm_dropout'])(layer_linear_output)
+                layer_output = Dense(1, activation="linear")(layer_rnn)
             else:
-                layer_output = LSTM(network['time_steps'], dropout=network['lstm_dropout'])(layer_linear_output)
+                layer_output = Dense(network['time_steps'], activation="linear")(layer_rnn)
+
         else:
             if (network['cnn'] == None):
                 #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset
