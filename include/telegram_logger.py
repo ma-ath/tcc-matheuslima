@@ -46,11 +46,14 @@ logger.addHandler(handler)
 logger.setLevel(logging.WARNING)
 
 def telegramSendMessage(message):
-    """
-        Envia uma mensagem de log para o telegram
-    """
-    if TELEGRAM_LOG_ACTIVATE:
-        logger.error(message)
+    try:
+        """
+            Envia uma mensagem de log para o telegram
+        """
+        if TELEGRAM_LOG_ACTIVATE:
+            logger.error(message)
+    except:
+        print("[ERROR]: No internet connection")
 
 if __name__ == '__main__':
     telegramSendMessage("TESTE")

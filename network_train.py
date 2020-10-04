@@ -9,6 +9,10 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_GPU
 
+os.environ["PATH"] += os.pathsep + "/usr/bin/dot"
+
+
+
 from tensorflow import keras
 from keras.optimizers import Adam, SGD
 from keras.losses import mean_squared_error
@@ -254,224 +258,228 @@ try:
         telegramSendMessage("Stating training in fold "+str(fold['number']))
 
         for network in networks:
-            # -------------------------- DATASET LOAD -------------------------- #
-            print_info("Loading "+fold['name']+" dataset for model "+network['model_name'])
-            telegramSendMessage("Loading "+fold['name']+" dataset for model "+network['model_name'])
-
-            [
-            X_train,
-            Y_train,
-            X_test,
-            Y_test
-            ] = loadDataset(Fold_name=fold['name'],
-                            CNN=network['cnn'],
-                            Pooling=network['pooling'],
-                            LSTM=network['lstm'],
-                            time_steps=network['time_steps'],
-                            overlap_windows=network['overlap_windows'],
-                            causal_prediction=network['causal_prediction'])
-
-            telegramSendMessage('Starting training process for '+network['model_name'])
-        
-            # -------------------------- DATASET LOAD -------------------------- #
-
-            # Load the desired network model
-            model = networkModel(network)
-
-            # Create a folder in cache to save the results from the running test
-            # Folder name is specifyed in the model_name key of dictionary
 
             results_datapath = CONST_STR_RESULTS_DATAPATH+fold['name']+'/'+network['model_name']
 
-            try:
-                if not os.path.exists(results_datapath):
-                    os.makedirs(results_datapath)
-            except OSError:
-                print_error('Error: Creating directory to save training data')
-                exit(1)
+            if not os.path.isfile(results_datapath+'/lossPlot.png'):    #If this file exists, this test was already done
+                # -------------------------- DATASET LOAD -------------------------- #
+                print_info("Loading "+fold['name']+" dataset for model "+network['model_name'])
+                telegramSendMessage("Loading "+fold['name']+" dataset for model "+network['model_name'])
 
-            # This is the learning rate scheduler, it changes the learning rate of fit
-            # depending in the current epoch
-            def scheduler(epoch):
-                if epoch < 30:
-                    return network['learning_schedule'][0]
-                elif epoch < 50:
-                    return network['learning_schedule'][1]
-                else:
-                    return network['learning_schedule'][2]
-
-            learning_schedule = LearningRateScheduler(scheduler)
-
-            model_checkpoint = ModelCheckpoint(results_datapath+'/model_checkpoint.hdf5',
-                                                monitor='val_loss',
-                                                verbose=2,
-                                                save_best_only=True,
-                                                save_weights_only=False,
-                                                mode='auto')
-
-            callback = [learning_schedule, model_checkpoint]
-
-            #Training Optimizer
-            opt = network['optimizer']
-
-            #Loss function to minimize
-            if network['loss_function'] == 'mse':
-                loss_function = mean_squared_error
-            else:
-                print_warning("Loss function specified in model is not suported. Using default (mse)")
-                loss_function = mean_squared_error
-
-            #Model Compile
-            model.compile(optimizer=opt, loss=loss_function) #  We can not use accuracy as a metric in this model
-
-            #Show network model in terminal and save it to disk
-            netconfig_file = open(results_datapath+'/network_configuration.txt', 'w')
-            print_info('Fitting the following model:')
-            netconfig_file.write('Fitting the following model:\n')
-            for key, value in network.items():
-                print('\t'+key,': ', value)
-                netconfig_file.write('\t'+str(key)+': '+str(value)+'\n')
-            model.summary()
-            plot_model(model,
-                        to_file=results_datapath+'/model_plot.png',
-                        show_shapes=True,
-                        show_layer_names=True)
-            netconfig_file.close()
-
-            #Fit model
-
-            fit_history = model.fit(
+                [
                 X_train,
                 Y_train,
-                batch_size=network['batch_size'],
-                epochs=network['epochs'],
-                verbose=2,
-                validation_data=(X_test, Y_test),
-                callbacks=callback)
+                X_test,
+                Y_test
+                ] = loadDataset(Fold_name=fold['name'],
+                                CNN=network['cnn'],
+                                Pooling=network['pooling'],
+                                LSTM=network['lstm'],
+                                time_steps=network['time_steps'],
+                                overlap_windows=network['overlap_windows'],
+                                causal_prediction=network['causal_prediction'])
 
-            telegramSendMessage('Network '+network['model_name']+' training process ended successfully')
-
-            save_model(model, results_datapath)                   #Save the calculated model to disk
-            save_weights(model, results_datapath)                 #Save the calculated weigths to disk
-
-            #Save the fitting history to disk
-            fit_history_df = pandas.DataFrame(fit_history.history)
-
-            with open(results_datapath+'/fit_history.csv', mode='w') as f:
-                fit_history_df.to_csv(f)
+                telegramSendMessage('Starting training process for '+network['model_name'])
             
-            telegramSendMessage('Saving vizualization data for '+network['model_name'])
-            # # ------------ SAVE SOME VISUALIZATION DATA ------------ #
+                # -------------------------- DATASET LOAD -------------------------- #
 
-            # # ------------------- predicte over test set ------------------- #
-            print_info("Predicting output for test data over last epoch")
-            Y_predicted = []
-            Y_vtest = Y_test
+                # Load the desired network model
+                model = networkModel(network)
 
-            # Prepare a predictionSamples vector, in order to plot it
-            for i in range(X_test.shape[0]):
-                X_predict = np.expand_dims(X_test[i], 0)
-                prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                newshape = (network['time_steps'], 1)
-                prediction = prediction[0]
-                Y_predicted.append(prediction)
-            Y_predicted = np.array(Y_predicted).astype("float32")
-            PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
-            newshape = (PLOT_SIZE, 1)
-            Y_predicted = np.reshape(Y_predicted, newshape)
-            Y_vtest = np.reshape(Y_test, newshape)
+                # Create a folder in cache to save the results from the running test
+                # Folder name is specifyed in the model_name key of dictionary
 
-            np.save(results_datapath+'/res_real_lastepoch_test.npy', Y_vtest[0:PLOT_SIZE])
-            np.save(results_datapath+'/res_prediction_lastepoch_test.npy', Y_predicted)
+                try:
+                    if not os.path.exists(results_datapath):
+                        os.makedirs(results_datapath)
+                except OSError:
+                    print_error('Error: Creating directory to save training data')
+                    exit(1)
 
-            plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test.png')
-            # ------------------- predicte over train set ------------------- #
-            """
-            print_info("Predicting output for train data over last epoch")
-            Y_predicted = []
-            Y_vtest = Y_train
+                # This is the learning rate scheduler, it changes the learning rate of fit
+                # depending in the current epoch
+                def scheduler(epoch):
+                    if epoch < 30:
+                        return network['learning_schedule'][0]
+                    elif epoch < 50:
+                        return network['learning_schedule'][1]
+                    else:
+                        return network['learning_schedule'][2]
 
-            # Prepare a predictionSamples vector, in order to plot it
-            for i in range(X_train.shape[0]):
-                X_predict = np.expand_dims(X_train[i], 0)
-                prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                newshape = (network['time_steps'], 1)
-                prediction = prediction[0]
-                Y_predicted.append(prediction)
-            Y_predicted = np.array(Y_predicted).astype("float32")
-            PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
-            newshape = (PLOT_SIZE, 1)
-            Y_predicted = np.reshape(Y_predicted, newshape)
+                learning_schedule = LearningRateScheduler(scheduler)
 
-            Y_vtest = np.reshape(Y_train, newshape)
+                model_checkpoint = ModelCheckpoint(results_datapath+'/model_checkpoint.hdf5',
+                                                    monitor='val_loss',
+                                                    verbose=2,
+                                                    save_best_only=True,
+                                                    save_weights_only=False,
+                                                    mode='auto')
 
-            np.save(results_datapath+'/res_real_lastepoch_train.npy', Y_vtest[0:PLOT_SIZE])
-            np.save(results_datapath+'/res_prediction_lastepoch_train.npy', Y_predicted)
+                callback = [learning_schedule, model_checkpoint]
 
-            plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train.png')
-            """
-            # # ------------------- Load best checkpoint weigths ------------------- # #
-            model.load_weights(os.path.join(results_datapath, 'model_checkpoint.hdf5'))
-            # # ------------------- Load best checkpoint weigths ------------------- # #
-            # # ------------------- predicte over test set ------------------- #
-            print_info("Predicting output for test data over best checkpoint")
-            Y_predicted = []
-            Y_vtest = Y_test
+                #Training Optimizer
+                opt = network['optimizer']
 
-            # Prepare a predictionSamples vector, in order to plot it
-            for i in range(X_test.shape[0]):
-                X_predict = np.expand_dims(X_test[i], 0)
-                prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                newshape = (network['time_steps'], 1)
-                prediction = prediction[0]
-                Y_predicted.append(prediction)
-            Y_predicted = np.array(Y_predicted).astype("float32")
-            PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
-            newshape = (PLOT_SIZE, 1)
-            Y_predicted = np.reshape(Y_predicted, newshape)
-            Y_vtest = np.reshape(Y_test, newshape)
+                #Loss function to minimize
+                if network['loss_function'] == 'mse':
+                    loss_function = mean_squared_error
+                else:
+                    print_warning("Loss function specified in model is not suported. Using default (mse)")
+                    loss_function = mean_squared_error
 
-            np.save(results_datapath+'/res_real_checkpoint_test.npy', Y_vtest[0:PLOT_SIZE])
-            np.save(results_datapath+'/res_prediction_checkpoint_test.npy', Y_predicted)
+                #Model Compile
+                model.compile(optimizer=opt, loss=loss_function) #  We can not use accuracy as a metric in this model
 
-            plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test.png')
-            # ------------------- predicte over train set ------------------- #
-            """
-            print_info("Predicting output for train data over best checkpoint")
-            Y_predicted = []
-            Y_vtest = Y_train
+                #Show network model in terminal and save it to disk
+                netconfig_file = open(results_datapath+'/network_configuration.txt', 'w')
+                print_info('Fitting the following model:')
+                netconfig_file.write('Fitting the following model:\n')
+                for key, value in network.items():
+                    print('\t'+key,': ', value)
+                    netconfig_file.write('\t'+str(key)+': '+str(value)+'\n')
+                model.summary()
+                #  Plot model has given me too many "pydot` failed to call GraphViz" errors. It's not so important
+                #
+                #  plot_model(model,
+                #            to_file=results_datapath+'/model_plot.png',
+                #            show_shapes=True,
+                #            show_layer_names=True)
+                netconfig_file.close()
 
-            # Prepare a predictionSamples vector, in order to plot it
-            for i in range(X_train.shape[0]):
-                X_predict = np.expand_dims(X_train[i], 0)
-                prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                newshape = (network['time_steps'], 1)
-                prediction = prediction[0]
-                Y_predicted.append(prediction)
-            Y_predicted = np.array(Y_predicted).astype("float32")
-            PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
-            newshape = (PLOT_SIZE, 1)
-            Y_predicted = np.reshape(Y_predicted, newshape)
+                #Fit model
 
-            Y_vtest = np.reshape(Y_train, newshape)
+                fit_history = model.fit(
+                    X_train,
+                    Y_train,
+                    batch_size=network['batch_size'],
+                    epochs=network['epochs'],
+                    verbose=2,
+                    validation_data=(X_test, Y_test),
+                    callbacks=callback)
 
-            np.save(results_datapath+'/res_real_checkpoint_train.npy', Y_vtest[0:PLOT_SIZE])
-            np.save(results_datapath+'/res_prediction_checkpoint_train.npy', Y_predicted)
+                telegramSendMessage('Network '+network['model_name']+' training process ended successfully')
 
-            plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train.png')
-            """
-            # summarize history for loss
-            plotTrainingLoss(fit_history,to_file=True,image_path=results_datapath)
-            #------------ SAVE SOME VISUALIZATION DATA ------------ #
-            #------------ FREE MEMORY ------------ #
-            del X_train
-            del X_test
-            del Y_train
-            del Y_test
-            del Y_vtest
-            del Y_predicted
-            gc.collect()
-            #------------ FREE MEMORY ------------ #
+                save_model(model, results_datapath)                   #Save the calculated model to disk
+                save_weights(model, results_datapath)                 #Save the calculated weigths to disk
+
+                #Save the fitting history to disk
+                fit_history_df = pandas.DataFrame(fit_history.history)
+
+                with open(results_datapath+'/fit_history.csv', mode='w') as f:
+                    fit_history_df.to_csv(f)
+                
+                telegramSendMessage('Saving vizualization data for '+network['model_name'])
+                # # ------------ SAVE SOME VISUALIZATION DATA ------------ #
+
+                # # ------------------- predicte over test set ------------------- #
+                print_info("Predicting output for test data over last epoch")
+                Y_predicted = []
+                Y_vtest = Y_test
+
+                # Prepare a predictionSamples vector, in order to plot it
+                for i in range(X_test.shape[0]):
+                    X_predict = np.expand_dims(X_test[i], 0)
+                    prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                    newshape = (network['time_steps'], 1)
+                    prediction = prediction[0]
+                    Y_predicted.append(prediction)
+                Y_predicted = np.array(Y_predicted).astype("float32")
+                PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+                newshape = (PLOT_SIZE, 1)
+                Y_predicted = np.reshape(Y_predicted, newshape)
+                Y_vtest = np.reshape(Y_test, newshape)
+
+                np.save(results_datapath+'/res_real_lastepoch_test.npy', Y_vtest[0:PLOT_SIZE])
+                np.save(results_datapath+'/res_prediction_lastepoch_test.npy', Y_predicted)
+
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test_lastepoch.png')
+                # ------------------- predicte over train set ------------------- #
+                """
+                print_info("Predicting output for train data over last epoch")
+                Y_predicted = []
+                Y_vtest = Y_train
+
+                # Prepare a predictionSamples vector, in order to plot it
+                for i in range(X_train.shape[0]):
+                    X_predict = np.expand_dims(X_train[i], 0)
+                    prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                    newshape = (network['time_steps'], 1)
+                    prediction = prediction[0]
+                    Y_predicted.append(prediction)
+                Y_predicted = np.array(Y_predicted).astype("float32")
+                PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+                newshape = (PLOT_SIZE, 1)
+                Y_predicted = np.reshape(Y_predicted, newshape)
+
+                Y_vtest = np.reshape(Y_train, newshape)
+
+                np.save(results_datapath+'/res_real_lastepoch_train.npy', Y_vtest[0:PLOT_SIZE])
+                np.save(results_datapath+'/res_prediction_lastepoch_train.npy', Y_predicted)
+
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train.png')
+                """
+                # # ------------------- Load best checkpoint weigths ------------------- # #
+                model.load_weights(os.path.join(results_datapath, 'model_checkpoint.hdf5'))
+                # # ------------------- Load best checkpoint weigths ------------------- # #
+                # # ------------------- predicte over test set ------------------- #
+                print_info("Predicting output for test data over best checkpoint")
+                Y_predicted = []
+                Y_vtest = Y_test
+
+                # Prepare a predictionSamples vector, in order to plot it
+                for i in range(X_test.shape[0]):
+                    X_predict = np.expand_dims(X_test[i], 0)
+                    prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                    newshape = (network['time_steps'], 1)
+                    prediction = prediction[0]
+                    Y_predicted.append(prediction)
+                Y_predicted = np.array(Y_predicted).astype("float32")
+                PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+                newshape = (PLOT_SIZE, 1)
+                Y_predicted = np.reshape(Y_predicted, newshape)
+                Y_vtest = np.reshape(Y_test, newshape)
+
+                np.save(results_datapath+'/res_real_checkpoint_test.npy', Y_vtest[0:PLOT_SIZE])
+                np.save(results_datapath+'/res_prediction_checkpoint_test.npy', Y_predicted)
+
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test_checkpoint.png')
+                # ------------------- predicte over train set ------------------- #
+                """
+                print_info("Predicting output for train data over best checkpoint")
+                Y_predicted = []
+                Y_vtest = Y_train
+
+                # Prepare a predictionSamples vector, in order to plot it
+                for i in range(X_train.shape[0]):
+                    X_predict = np.expand_dims(X_train[i], 0)
+                    prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                    newshape = (network['time_steps'], 1)
+                    prediction = prediction[0]
+                    Y_predicted.append(prediction)
+                Y_predicted = np.array(Y_predicted).astype("float32")
+                PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+                newshape = (PLOT_SIZE, 1)
+                Y_predicted = np.reshape(Y_predicted, newshape)
+
+                Y_vtest = np.reshape(Y_train, newshape)
+
+                np.save(results_datapath+'/res_real_checkpoint_train.npy', Y_vtest[0:PLOT_SIZE])
+                np.save(results_datapath+'/res_prediction_checkpoint_train.npy', Y_predicted)
+
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train.png')
+                """
+                # summarize history for loss
+                plotTrainingLoss(fit_history,to_file=True,image_path=results_datapath)
+                #------------ SAVE SOME VISUALIZATION DATA ------------ #
+                #------------ FREE MEMORY ------------ #
+                del X_train
+                del X_test
+                del Y_train
+                del Y_test
+                del Y_vtest
+                del Y_predicted
+                gc.collect()
+                #------------ FREE MEMORY ------------ #
     # ---------------------------- TRAINING ---------------------------- #
     print_info('All network models were trained successfully')
     telegramSendMessage('All network models were trained successfully')
