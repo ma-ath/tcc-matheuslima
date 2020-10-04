@@ -16,49 +16,95 @@ def networkModel(network):
         #
         #   This LSTM Model is based on the Paper "Quo Vadis, action recognition? A new model and the kinetics dataset"
         #
-        if (network['cnn'] == None):
-            #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset
-            print_error("Erro in declaration of model "+network['model_name'])
-            print_error("Your model has to have a specified cnn layer")
-            exit(1)
-        #   ------- Input layer -------   #
-        if (network['pooling'] == None):
-            if (network['cnn'] == 'vgg16'):
-                layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE)
-            if (network['cnn'] == 'resnet50'):
-                layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE)
-            if (network['cnn'] == 'inceptionV3'):
-                layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE)
-        else:
-            if (network['cnn'] == 'vgg16'):
-                layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2]))
-            if (network['cnn'] == 'resnet50'):
-                layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2]))
-            if (network['cnn'] == 'inceptionV3'):
-                layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2]))
-
-        #   ------- LSTM layer -------   #
-
-        layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_input)
-
-        #   ------- Hidden FC layer -------   #
-
-        if network['hiddenfc']:
-
-            layer_hidden_fc = Dense(network['hiddenfc_size'],
-                        activation=network['hiddenfc_activation'],
-                        activity_regularizer=network['hiddenfc_activity_regularizer'])(layer_rnn)
-
-            #   ------- Output layer -------   #
-            if network['overlap_windows']:
-                layer_output = Dense(1, activation='linear')(layer_hidden_fc)
+        if network['hiddenfc_before_lstm']:
+            if (network['cnn'] is None):
+                #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset
+                print_error("Erro in declaration of model "+network['model_name'])
+                print_error("Your model has to have a specified cnn layer")
+                exit(1)
+            #   ------- Input layer -------   #
+            if (network['pooling'] is None):
+                if (network['cnn'] == 'vgg16'):
+                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE)
+                if (network['cnn'] == 'resnet50'):
+                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE)
+                if (network['cnn'] == 'inceptionV3'):
+                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE)
             else:
-                layer_output = Dense(network['time_steps'], activation='linear')(layer_hidden_fc)
-        else:
-            if network['overlap_windows']:
-                layer_output = Dense(1, activation='linear')(layer_rnn)
+                if (network['cnn'] == 'vgg16'):
+                    layer_input = Input(shape=(network['time_steps'], CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2]))
+                if (network['cnn'] == 'resnet50'):
+                    layer_input = Input(shape=(network['time_steps'], CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2]))
+                if (network['cnn'] == 'inceptionV3'):
+                    layer_input = Input(shape=(network['time_steps'], CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2]))
+            #   ------- Hidden FC layer -------   #
+            if network['hiddenfc']:
+                layer_hidden_fc = TimeDistributed(
+                            Dense(network['hiddenfc_size'],
+                            activation=network['hiddenfc_activation'],
+                            activity_regularizer=network['hiddenfc_activity_regularizer'])
+                                )(layer_input)
+
+                #   ------- Linear layer -------   #
+                if network['overlap_windows']:
+                    layer_linear_output = TimeDistributed(Dense(1, activation='linear'))(layer_hidden_fc)
+                else:
+                    layer_linear_output = TimeDistributed(Dense(network['time_steps'], activation='linear'))(layer_hidden_fc)
             else:
-                layer_output = Dense(network['time_steps'], activation='linear')(layer_rnn)
+                if network['overlap_windows']:
+                    layer_linear_output = TimeDistributed(Dense(1, activation='linear'))(layer_input)
+                else:
+                    layer_linear_output = TimeDistributed(Dense(network['time_steps'], activation='linear'))(layer_input)
+
+            #   ------- LSTM layer -------   #
+            if network['overlap_windows']:
+                layer_output = LSTM(1, dropout=network['lstm_dropout'])(layer_linear_output)
+            else:
+                layer_output = LSTM(network['time_steps'], dropout=network['lstm_dropout'])(layer_linear_output)
+        else:
+            if (network['cnn'] == None):
+                #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset
+                print_error("Erro in declaration of model "+network['model_name'])
+                print_error("Your model has to have a specified cnn layer")
+                exit(1)
+            #   ------- Input layer -------   #
+            if (network['pooling'] == None):
+                if (network['cnn'] == 'vgg16'):
+                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE)
+                if (network['cnn'] == 'resnet50'):
+                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE)
+                if (network['cnn'] == 'inceptionV3'):
+                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE)
+            else:
+                if (network['cnn'] == 'vgg16'):
+                    layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2]))
+                if (network['cnn'] == 'resnet50'):
+                    layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2]))
+                if (network['cnn'] == 'inceptionV3'):
+                    layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2]))
+
+            #   ------- LSTM layer -------   #
+
+            layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_input)
+
+            #   ------- Hidden FC layer -------   #
+
+            if network['hiddenfc']:
+
+                layer_hidden_fc = Dense(network['hiddenfc_size'],
+                            activation=network['hiddenfc_activation'],
+                            activity_regularizer=network['hiddenfc_activity_regularizer'])(layer_rnn)
+
+                #   ------- Output layer -------   #
+                if network['overlap_windows']:
+                    layer_output = Dense(1, activation='linear')(layer_hidden_fc)
+                else:
+                    layer_output = Dense(network['time_steps'], activation='linear')(layer_hidden_fc)
+            else:
+                if network['overlap_windows']:
+                    layer_output = Dense(1, activation='linear')(layer_rnn)
+                else:
+                    layer_output = Dense(network['time_steps'], activation='linear')(layer_rnn)
     else:
         if (network['cnn'] == None):
             #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset

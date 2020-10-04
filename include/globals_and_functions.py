@@ -51,38 +51,6 @@ CONST_STR_RESULTS_DATAPATH = "./results/"
 
 CUDA_GPU = "0"
 
-# -----------------------
-TEST_DATA_RATIO = 0.75
-AUDIO_DATA_NAME = "audioPower.npy"
-PROCESSED_DATA_FOLDER = "processedData/"
-dataset_datapath = "./dataset/" #Datapath for the dataset
-dataset_train_datapath = "./dataset/train/"  #Path for train dataset
-dataset_test_datapath = "./dataset/test/"    #Path for test dataset   
-
-dataset_config_filename = "config"
-dataset_config_train_filename = "config-train"
-dataset_config_test_filename = "config-test"
-output_resolution = "224x224"   #This string determines the output resolution of the resized video
-
-dataset_test_raw = "./dataset/raw/test/"    #Path in which all raw video files are
-dataset_train_raw = "./dataset/raw/train/"  #Path in which all raw video files are
-number_of_frames_filename = "number_of_frames"
-video_sizes_filename_train = "video_sizes_train"
-video_sizes_filename_test = "video_sizes_test"
-
-DATASET_CACHE_FOLDER = "./cache/cached_dataset/"
-DATASET_VGG16_IMAGEFEATURES_FILEPATH = 'vgg16_image_features/'
-DATASET_VGG16_IMAGEFEATURES_FTRAIN = 'X_ftrain.npy'
-DATASET_VGG16_IMAGEFEATURES_FTEST = 'X_ftest.npy'
-VGG16_OUTPUT_SHAPE = (7,7,512)
-
-image_shape = (224,224,3)
-#timeSteps = 3
-timeStepArray = [3,9,27]
-
-imagenet_mean = [0.485, 0.456, 0.406]
-imagenet_std = [0.229, 0.224, 0.225]
-
 # -------------------------------------------------------- #
 # ------------------ AUXILIARY FUNCTIONS ----------------- #
 class bcolors:
@@ -187,17 +155,3 @@ def plotTrainingLoss(history, to_file=False, image_path='.'):
     else:
         plt.savefig(image_path+'/lossPlot.png')
     pass
-
-if __name__ == "__main__":
-
-    [
-    X_train,
-    Y_train,
-    X_test,
-    Y_test
-    ] = loadDatasetLSTM(causal_prediction=False,overlap_windows=True,timeSteps=9,features_only=True,pooling_input='GAP')   #Load the dataset
-
-    print(X_train.shape)
-    print(Y_train.shape)
-    print(X_test.shape)
-    print(Y_test.shape)

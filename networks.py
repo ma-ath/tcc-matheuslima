@@ -1,5 +1,90 @@
 from include.globals_and_functions import *
 
+net_number = 12
+networks = [dict() for i in range(net_number)]
+
+#   Diferent parameters generation  --------------------------------- #
+
+#   FIXED PARAMETERS FOR ALL NETWORKS
+for i in range(net_number):
+    networks[i]['model_name'] = 'model_foldtraining_'+str(i+18)
+    # --- loadDataset --- #
+    #networks[i]['cnn'] = 'inceptionV3'
+    networks[i]['pooling'] = 'GAP'
+    networks[i]['lstm'] = True
+    #networks[i]['time_steps'] = 20
+    networks[i]['overlap_windows'] = True
+    networks[i]['causal_prediction'] = False
+    # --- loadDataset --- #
+    # --- networkModel --- #
+    networks[i]['lstm_outputsize'] = 128
+    networks[i]['lstm_dropout'] = 0.2
+    networks[i]['hiddenfc_before_lstm'] = True
+    #networks[i]['hiddenfc'] = True
+    networks[i]['hiddenfc_activation'] = 'tanh'
+    networks[i]['hiddenfc_size'] = 128
+    networks[i]['hiddenfc_activity_regularizer'] = None
+    # --- networkModel --- #
+    # --- training --- #
+    networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
+    networks[i]['optimizer'] = 'adam'
+    networks[i]['loss_function'] = 'mse'
+    networks[i]['batch_size'] = 32
+    networks[i]['epochs'] = 50
+    # --- training --- #
+#   0
+networks[0]['cnn'] = 'vgg16'
+networks[0]['time_steps'] = 9
+networks[0]['hiddenfc'] = True
+#   1
+networks[1]['cnn'] = 'vgg16'
+networks[1]['time_steps'] = 32
+networks[1]['hiddenfc'] = True
+#   2
+networks[2]['cnn'] = 'resnet50'
+networks[2]['time_steps'] = 9
+networks[2]['hiddenfc'] = True
+#   3
+networks[3]['cnn'] = 'resnet50'
+networks[3]['time_steps'] = 32
+networks[3]['hiddenfc'] = True
+#   4
+networks[4]['cnn'] = 'inceptionV3'
+networks[4]['time_steps'] = 9
+networks[4]['hiddenfc'] = True
+#   5
+networks[5]['cnn'] = 'inceptionV3'
+networks[5]['time_steps'] = 32
+networks[5]['hiddenfc'] = True
+#   6
+networks[6]['cnn'] = 'vgg16'
+networks[6]['time_steps'] = 9
+networks[6]['hiddenfc'] = False
+#   7
+networks[7]['cnn'] = 'vgg16'
+networks[7]['time_steps'] = 32
+networks[7]['hiddenfc'] = False
+#   8
+networks[8]['cnn'] = 'resnet50'
+networks[8]['time_steps'] = 9
+networks[8]['hiddenfc'] = False
+#   9
+networks[9]['cnn'] = 'resnet50'
+networks[9]['time_steps'] = 32
+networks[9]['hiddenfc'] = False
+#   10
+networks[10]['cnn'] = 'inceptionV3'
+networks[10]['time_steps'] = 9
+networks[10]['hiddenfc'] = False
+#   11
+networks[11]['cnn'] = 'inceptionV3'
+networks[11]['time_steps'] = 32
+networks[11]['hiddenfc'] = False
+
+
+"""
+The following networks are the ones trained between september 21 and october 4
+
 net_number = 18
 networks = [dict() for i in range(net_number)]
 
@@ -19,7 +104,7 @@ for i in range(net_number):
     # --- networkModel --- #
     networks[i]['lstm_outputsize'] = 128
     networks[i]['lstm_dropout'] = 0.2
-
+    networks[i]['hiddenfc_before_lstm'] = False
     #networks[i]['hiddenfc'] = True
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
@@ -122,3 +207,4 @@ networks[17]['cnn'] = 'inceptionV3'
 networks[17]['lstm'] = False
 networks[17]['time_steps'] = 9   #Irrelevant
 networks[17]['hiddenfc'] = False
+"""
