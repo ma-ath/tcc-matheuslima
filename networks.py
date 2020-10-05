@@ -36,7 +36,7 @@ for i in range(net_number):
 #   0
 networks[0]['cnn'] = 'vgg16'
 networks[0]['time_steps'] = 9
-networks[0]['hiddenfc'] = False
+networks[0]['hiddenfc'] = True
 #   1
 networks[1]['cnn'] = 'vgg16'
 networks[1]['time_steps'] = 32
