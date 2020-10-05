@@ -17,8 +17,9 @@ for i in range(net_number):
     networks[i]['causal_prediction'] = False
     # --- loadDataset --- #
     # --- networkModel --- #
-    networks[i]['lstm_outputsize'] = 128
+    networks[i]['lstm_outputsize'] = 32
     networks[i]['lstm_dropout'] = 0.2
+    networks[i]['lstm_batchnormalization'] = False
     networks[i]['hiddenfc_before_lstm'] = True
     #networks[i]['hiddenfc'] = True
     networks[i]['hiddenfc_activation'] = 'tanh'
@@ -35,7 +36,7 @@ for i in range(net_number):
 #   0
 networks[0]['cnn'] = 'vgg16'
 networks[0]['time_steps'] = 9
-networks[0]['hiddenfc'] = True
+networks[0]['hiddenfc'] = False
 #   1
 networks[1]['cnn'] = 'vgg16'
 networks[1]['time_steps'] = 32

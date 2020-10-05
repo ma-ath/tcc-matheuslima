@@ -2,7 +2,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import keras
 
-from keras.layers import Input, LSTM, TimeDistributed, Dense
+from keras.layers import Input, LSTM, TimeDistributed, Dense, BatchNormalization
 from keras.models import Model
 from keras import regularizers
 
@@ -57,8 +57,11 @@ def networkModel(network):
                     layer_linear_output = TimeDistributed(Dense(network['time_steps'], activation='linear'))(layer_input)
 
             #   ------- LSTM layer -------   #
-            layer_rnn = LSTM(32, dropout=network['lstm_dropout'])(layer_linear_output)
-
+            if network['lstm_batchnormalization']:
+                layer_batchnorm = BatchNormalization()(layer_linear_output)
+                layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_batchnorm)
+            else:
+                layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_linear_output)
             #   ------- Output -------  #
             if network['overlap_windows']:
                 layer_output = Dense(1, activation="linear")(layer_rnn)
