@@ -373,17 +373,18 @@ try:
 
                 # # ------------------- predicte over test set ------------------- #
                 print_info("Predicting output for test data over last epoch")
-                Y_predicted = []
-                Y_vtest = Y_test
-
+                #Y_predicted = []
+                #Y_vtest = Y_test
+                #
                 # Prepare a predictionSamples vector, in order to plot it
-                for i in range(X_test.shape[0]):
-                    X_predict = np.expand_dims(X_test[i], 0)
-                    prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                    newshape = (network['time_steps'], 1)
-                    prediction = prediction[0]
-                    Y_predicted.append(prediction)
-                Y_predicted = np.array(Y_predicted).astype("float32")
+                #for i in range(X_test.shape[0]):
+                #    X_predict = np.expand_dims(X_test[i], 0)
+                #    prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                #    newshape = (network['time_steps'], 1)
+                #    prediction = prediction[0]
+                #    Y_predicted.append(prediction)
+                #Y_predicted = np.array(Y_predicted).astype("float32")
+                Y_predicted = model.predict(X_test, batch_size=network['batch_size'])
                 PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
                 newshape = (PLOT_SIZE, 1)
                 Y_predicted = np.reshape(Y_predicted, newshape)
@@ -416,24 +417,25 @@ try:
                 np.save(results_datapath+'/res_real_lastepoch_train.npy', Y_vtest[0:PLOT_SIZE])
                 np.save(results_datapath+'/res_prediction_lastepoch_train.npy', Y_predicted)
 
-                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train.png')
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train_lastepoch.png')
                 """
                 # # ------------------- Load best checkpoint weigths ------------------- # #
                 model.load_weights(os.path.join(results_datapath, 'model_checkpoint.hdf5'))
                 # # ------------------- Load best checkpoint weigths ------------------- # #
                 # # ------------------- predicte over test set ------------------- #
                 print_info("Predicting output for test data over best checkpoint")
-                Y_predicted = []
-                Y_vtest = Y_test
-
+                #Y_predicted = []
+                #Y_vtest = Y_test
+                #
                 # Prepare a predictionSamples vector, in order to plot it
-                for i in range(X_test.shape[0]):
-                    X_predict = np.expand_dims(X_test[i], 0)
-                    prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                    newshape = (network['time_steps'], 1)
-                    prediction = prediction[0]
-                    Y_predicted.append(prediction)
-                Y_predicted = np.array(Y_predicted).astype("float32")
+                #for i in range(X_test.shape[0]):
+                #    X_predict = np.expand_dims(X_test[i], 0)
+                #    prediction = model.predict(X_predict, batch_size=network['batch_size'])
+                #    newshape = (network['time_steps'], 1)
+                #    prediction = prediction[0]
+                #    Y_predicted.append(prediction)
+                #Y_predicted = np.array(Y_predicted).astype("float32")
+                Y_predicted = model.predict(X_test, batch_size=network['batch_size'])
                 PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
                 newshape = (PLOT_SIZE, 1)
                 Y_predicted = np.reshape(Y_predicted, newshape)
@@ -442,7 +444,7 @@ try:
                 np.save(results_datapath+'/res_real_checkpoint_test.npy', Y_vtest[0:PLOT_SIZE])
                 np.save(results_datapath+'/res_prediction_checkpoint_test.npy', Y_predicted)
 
-                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test_checkpoint.png')
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Test_checkpoint.png')
                 # ------------------- predicte over train set ------------------- #
                 """
                 print_info("Predicting output for train data over best checkpoint")
@@ -466,10 +468,10 @@ try:
                 np.save(results_datapath+'/res_real_checkpoint_train.npy', Y_vtest[0:PLOT_SIZE])
                 np.save(results_datapath+'/res_prediction_checkpoint_train.npy', Y_predicted)
 
-                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train.png')
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train_checkpoint.png')
                 """
                 # summarize history for loss
-                plotTrainingLoss(fit_history,to_file=True,image_path=results_datapath)
+                plotTrainingLoss(fit_history, to_file=True, image_path=results_datapath)
                 #------------ SAVE SOME VISUALIZATION DATA ------------ #
                 #------------ FREE MEMORY ------------ #
                 del X_train
