@@ -47,13 +47,13 @@ def plotTrainingLoss(history, to_file=False, image_path='.'):
     pass
 
 
-real_train = np.load("lstm_analysis/res_real_lastepoch_train.npy")
-pred_train = np.load("lstm_analysis/res_prediction_lastepoch_train.npy")
-real_test = np.load("lstm_analysis/res_real_lastepoch_test.npy")
-pred_test = np.load("lstm_analysis/res_prediction_lastepoch_test.npy")
+real_train = np.load("lstm_analysis/real-train.npy")
+pred_train = np.load("lstm_analysis/pred-train.npy")
+real_test = np.load("lstm_analysis/real-test.npy")
+pred_test = np.load("lstm_analysis/pred-test.npy")
 
-training_nof = np.load("lstm_analysis/nof_train_fold_0.npy")
-testing_nof = np.load("lstm_analysis/nof_test_fold_0.npy")
+training_nof = np.load("lstm_analysis/nof-train.npy")
+testing_nof = np.load("lstm_analysis/nof-test.npy")
 
 def create_dataset(X, Y, nof, time_steps=1, target_size=None):
 
@@ -77,9 +77,9 @@ def create_dataset(X, Y, nof, time_steps=1, target_size=None):
 
     return np.array(X_out), np.array(Y_out)
 
-X_train, Y_train = create_dataset(pred_train, real_train, training_nof, time_steps=32)
+X_train, Y_train = create_dataset(pred_train, real_train, training_nof, time_steps=100)
 
-X_test, Y_test = create_dataset(pred_test, real_test, testing_nof, time_steps=32)
+X_test, Y_test = create_dataset(pred_test, real_test, testing_nof, time_steps=100)
 
 #   LSTM Model
 print(X_train.shape)
@@ -100,7 +100,7 @@ model.summary()
 
 history = model.fit(
     X_train, Y_train,
-    epochs=20,
+    epochs=5,
     batch_size=32,
     validation_data=(X_test, Y_test),
     verbose=1,
