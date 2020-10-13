@@ -144,8 +144,17 @@ Y_train = np.concatenate((Y1_tr, Y2_tr, Y3_tr, Y4_tr, Y5_tr), axis=0)
 X_test = np.concatenate((X1_te, X2_te, X3_te, X4_te, X5_te), axis=0)
 Y_test = np.concatenate((Y1_te, Y2_te, Y3_te, Y4_te, Y5_te), axis=0)
 
-#X_train, Y_train = create_dataset(X_train, Y_train, nof_tr, time_steps=32)
-#X_test, Y_test = create_dataset(X_test, Y_test, nof_te, time_steps=32)
+X_train, Y_train = create_dataset(X_train, Y_train, nof_tr, time_steps=32)
+X_test, Y_test = create_dataset(X_test, Y_test, nof_te, time_steps=32)
+
+while X_train.shape[0] != 16384:
+    X_train = np.delete(X_train, 1, axis=0)
+while Y_train.shape[0] != 16384:
+    Y_train = np.delete(Y_train, 1, axis=0)
+while X_test.shape[0] != 16384:
+    X_test = np.delete(X_test, 1, axis=0)
+while Y_test.shape[0] != 16384:
+    Y_test = np.delete(Y_test, 1, axis=0)
 
 """
 a = X_train
@@ -167,17 +176,21 @@ print("X_train sparsity:", sparsity)
 sparsity = 1.0 - count_nonzero(X_test) / X_test.size
 print("X_test sparsity:", sparsity)
 
-X_train -= np.mean(X_train)
-X_train /= np.std(X_train)
+#X_train -= np.mean(X_train)
+#X_train /= np.std(X_train)
 
-X_test -= np.mean(X_test)
-X_test /= np.std(X_test)
+#X_test -= np.mean(X_test)
+#X_test /= np.std(X_test)
 
-input_shape = X_train.shape#(X_train.shape[1], X_train.shape[2])
+batch_size = 32
+
+input_shape = (X_train.shape[1], X_train.shape[2])
 model = keras.Sequential()
-#model.add(keras.layers.LSTM(units=32, input_shape=input_shape))
-model.add(keras.layers.Dense(32, activation='tanh'))
-model.add(keras.layers.Dense(1, activation='linear'))
+model.add(keras.layers.LSTM(units=32, input_shape=input_shape, stateful=True, batch_input_shape=(batch_size,)+input_shape))
+model.add(keras.layers.Dense(32, activation='tanh', kernel_initializer='normal'))
+#model.add(keras.layers.Dense(32, activation='tanh', kernel_initializer='normal'))
+model.add(keras.layers.Dense(1, activation='linear', kernel_initializer='normal'))
+
 
 model.compile(
   loss='mean_squared_error',
@@ -188,29 +201,45 @@ model.build(input_shape)
 
 model.summary()
 
-plotAudioPowerWithPrediction(Y_train, X_train[:,0], to_file=False)
+#plotAudioPowerWithPrediction(Y_train, X_train[:, 0], to_file=False)
 
-history = model.fit(
+for i in range(64):
+    model.fit(
     X_train, Y_train,
-    epochs=16,
-    batch_size=32,
+    epochs=1,
+    batch_size=batch_size,
     validation_data=(X_test, Y_test),
-    verbose=1
-)
+    verbose=1,
+    shuffle=False
+    )
+    Y_predicted = model.predict(X_test, batch_size=batch_size)
+    PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
+    newshape = (PLOT_SIZE, 1)
+    Y_predicted = np.reshape(Y_predicted, newshape)
+    Y_vtest = np.reshape(Y_train, newshape)
+    plotAudioPowerWithPrediction(Y_test, Y_predicted, to_file=True,image_path='./fasterRCNN_analysis',image_name='/Prediction_'+str(i))
+    model.reset_states()
 
-Y_predicted = model.predict(X_test, batch_size=32)
+print(X_train)
+print(Y_train)
+print(X_test)
+print(Y_test)
+
+Y_predicted = model.predict(X_test, batch_size=batch_size)
 PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
 newshape = (PLOT_SIZE, 1)
 Y_predicted = np.reshape(Y_predicted, newshape)
 Y_vtest = np.reshape(Y_test, newshape)
+plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=False)
+print(Y_predicted)
 
 #np.save('fasterRCNN_analysis'+'/real-test.npy', Y_vtest[0:PLOT_SIZE])
 #np.save('fasterRCNN_analysis'+'/pred-test.npy', Y_predicted)
 
-plotTrainingLoss(history, to_file=False, image_path='fasterRCNN_analysis')
+#plotTrainingLoss(history, to_file=False, image_path='fasterRCNN_analysis')
 plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=False)
 
-Y_predicted = model.predict(X_train, batch_size=32)
+Y_predicted = model.predict(X_train, batch_size=batch_size)
 PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
 newshape = (PLOT_SIZE, 1)
 Y_predicted = np.reshape(Y_predicted, newshape)
