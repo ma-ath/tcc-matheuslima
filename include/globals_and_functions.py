@@ -29,9 +29,10 @@ from keras.applications.vgg16 import preprocess_input
 CONST_STR_DATASET_RAW_DATAPATH = "./dataset/raw/"   #Path in which all raw video files are
 CONST_STR_DATASET_CONFIG_FILENAME = "config"        #this is the name of the config file for raw videos
 CONST_STR_DATASET_DATAPATH = "./dataset/"           #Datapath for the dataset
+CONST_STR_DATASET_FRCNN_DATAPATH = "./dataset/fasterRCNN_features/"
 CONST_STR_DATASET_OUTPUT_RESOLUTION = "224x224"     #Output resolution of video for
 CONST_VEC_DATASET_OUTPUT_RESOLUTION = (224, 224)
-CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE = (224, 224,3)
+CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE = (224, 224, 3)
 CONST_INT_DATASET_DECIMATION_FACTOR = 10            #This number determines factor of decimation when extracting frames from video
 CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME = "nmb_of_frames"
 CONS_STR_DATASET_AUDIOFILE_FILENAME = "/audioData.wav"

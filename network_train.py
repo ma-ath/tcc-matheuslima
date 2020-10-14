@@ -300,7 +300,22 @@ try:
                                 causal_prediction=network['causal_prediction'])
 
                 telegramSendMessage('Starting training process for '+network['model_name'])
-            
+
+                #   Load auxiliary input, in case of using a fasterRCNN auxiliary input
+                #   Meanwhile it's set by hand to test code
+                #   This is not intendent to be used on server
+                if network['fasterRCNN_support']:
+                    frcnn_X_train = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+"M2U00003.json.dense.npy")
+                    frcnn_X_test = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+"M2U00004.json.dense.npy")
+
+                    #   Conform frcnn dataset to normal dataset
+                    while frcnn_X_train.shape[0] > X_train.shape[0]:
+                        frcnn_X_train = np.delete(frcnn_X_train, 1, axis=0)
+                    while frcnn_X_test.shape[0] > X_test.shape[0]:
+                        frcnn_X_test = np.delete(frcnn_X_test, 1, axis=0)
+
+                    X_train = [X_train, frcnn_X_train]
+                    X_test = [X_test, frcnn_X_test]
                 # -------------------------- DATASET LOAD -------------------------- #
 
                 # Load the desired network model
@@ -360,10 +375,10 @@ try:
                 model.summary()
                 #  Plot model has given me too many "pydot` failed to call GraphViz" errors. It's not so important
                 #
-                #  plot_model(model,
-                #            to_file=results_datapath+'/model_plot.png',
-                #            show_shapes=True,
-                #            show_layer_names=True)
+                plot_model(model,
+                            to_file=results_datapath+'/model_plot.png',
+                            show_shapes=True,
+                            show_layer_names=True)
                 netconfig_file.close()
 
                 #Fit model

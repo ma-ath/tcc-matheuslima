@@ -11,7 +11,7 @@ for i in range(net_number):
     # --- loadDataset --- #
     #networks[i]['cnn'] = 'inceptionV3'
     networks[i]['pooling'] = 'GAP'
-    networks[i]['lstm'] = True
+    networks[i]['lstm'] = False
     #networks[i]['time_steps'] = 20
     networks[i]['overlap_windows'] = True
     networks[i]['causal_prediction'] = False
@@ -20,25 +20,28 @@ for i in range(net_number):
     networks[i]['lstm_outputsize'] = 32
     networks[i]['lstm_dropout'] = 0.2
     networks[i]['lstm_batchnormalization'] = False
-    networks[i]['lstm_stateful'] = True
+    networks[i]['lstm_stateful'] = False
     networks[i]['hiddenfc_before_lstm'] = False
     #networks[i]['hiddenfc'] = True
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['fasterRCNN_support'] = True
+    networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
+    networks[i]['fasterRCNN_dense_size'] = 128
     # --- networkModel --- #
     # --- training --- #
     networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
     networks[i]['optimizer'] = 'adam'
     networks[i]['loss_function'] = 'mse'
     networks[i]['batch_size'] = 32
-    networks[i]['epochs'] = 1000
+    networks[i]['epochs'] = 500
     # --- training --- #
 
 #   0
 networks[0]['cnn'] = 'vgg16'
 networks[0]['time_steps'] = 9
-networks[0]['hiddenfc'] = False
+networks[0]['hiddenfc'] = True
 
 """
 The following networks are the ones trained between october 4 and october 13
