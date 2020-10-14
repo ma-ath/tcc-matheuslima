@@ -247,6 +247,26 @@ def loadDataset(Fold_name,
         gc.collect()
 
         return X_train, Y_train, X_test, Y_test
+
+def statefulDataset(X_train, Y_train, X_test, Y_test, batch_size):
+    """
+        On stateful LSTM networks, you have to pass the input_size (including the batch_size)
+        to the network when declaring it (throughout the batch_input_shape argument)
+
+        Therefore, lenght of the dataset has to me a multiple of batch_size.
+        We do that by deleting sufficient data;
+    """
+
+    while X_train.shape[0] % batch_size != 0:
+        X_train = np.delete(X_train, 1, axis=0)
+        Y_train = np.delete(Y_train, 1, axis=0)
+
+    while X_test.shape[0] % batch_size != 0:
+        X_test = np.delete(X_test, 1, axis=0)
+        Y_test = np.delete(Y_test, 1, axis=0)
+
+    return X_train, Y_train, X_test, Y_test
+
 try:
     """
         This script run throught all networks and folds variations and trains then one after another
@@ -348,14 +368,60 @@ try:
 
                 #Fit model
 
-                fit_history = model.fit(
-                    X_train,
-                    Y_train,
-                    batch_size=network['batch_size'],
-                    epochs=network['epochs'],
-                    verbose=2,
-                    validation_data=(X_test, Y_test),
-                    callbacks=callback)
+                if not network['lstm_stateful']:
+                    fit_history = model.fit(
+                        X_train,
+                        Y_train,
+                        batch_size=network['batch_size'],
+                        epochs=network['epochs'],
+                        verbose=2,
+                        validation_data=(X_test, Y_test),
+                        callbacks=callback)
+                else:
+                    #   Conform the dataset to stateful standard
+                    #   Dont shuffle input data
+                    [
+                        X_train,
+                        Y_train,
+                        X_test,
+                        Y_test
+                    ] = statefulDataset(X_train, Y_train, X_test, Y_test, network['batch_size'])
+
+                    for i in range(network['epochs']):
+                        history = model.fit(
+                            X_train,
+                            Y_train,
+                            batch_size=network['batch_size'],
+                            epochs=1,
+                            verbose=2,
+                            validation_data=(X_test, Y_test),
+                            shuffle=False)
+
+                        #   Saves best model checkpoint
+                        if i == 0:
+                            fit_history = history
+                            best_checkpoint = history.history['val_loss'][0]
+                        else:
+                            if history.history['val_loss'][0] < best_checkpoint:
+                                print_info("Validation loss improved from "+str(best_checkpoint)+" to "+str(history.history['val_loss'][0]))
+                                print_info("Saving checkpoint model")
+                                best_checkpoint = history.history['val_loss'][0]
+                                save_weights(model, results_datapath, filename="model_checkpoint.hdf5")
+                        
+                        #   Updates fit_history
+                        fit_history.history['loss'].append(history.history['loss'][0])
+                        fit_history.history['val_loss'].append(history.history['val_loss'][0])
+
+                        #   Reset states between epochs
+                        model.reset_states()
+
+                        #   Code to save prediction for each epoch
+                        #   Only used on special occasions
+
+                        Y_predicted = model.predict(X_test, batch_size=network['batch_size'])
+                        Y_predicted = np.reshape(Y_predicted, (Y_predicted.shape[0]*Y_predicted.shape[1], 1))
+                        Y_vtest = np.reshape(Y_test, (Y_predicted.shape[0]*Y_predicted.shape[1], 1))
+                        plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test_lastepoch_'+str(i)+'.png')
 
                 telegramSendMessage('Network '+network['model_name']+' training process ended successfully')
 

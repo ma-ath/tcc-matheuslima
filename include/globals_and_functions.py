@@ -75,11 +75,14 @@ def save_model(model, folder_path):
         os.mkdir(folder_path)
     open(os.path.join(folder_path, 'architecture.json'), 'w').write(json_string)
 
-def save_weights(model, folder_path):
+def save_weights(model, folder_path, filename=None):
     if not os.path.isdir(folder_path):
         os.mkdir(folder_path)
-    model.save_weights(os.path.join(folder_path, 'model_weights.h5'), overwrite=True)
-
+    if filename is None:
+        model.save_weights(os.path.join(folder_path, 'model_weights.h5'), overwrite=True)
+    else:
+        model.save_weights(os.path.join(folder_path, filename), overwrite=True)
+        
 def load_model(folder_path):
     model = model_from_json(open(os.path.join(folder_path, 'architecture.json')).read())
     model.load_weights(os.path.join(folder_path, 'model_weights.h5'))
