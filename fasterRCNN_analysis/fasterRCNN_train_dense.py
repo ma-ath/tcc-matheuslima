@@ -185,6 +185,7 @@ print("X_test sparsity:", sparsity)
 batch_size = 32
 
 input_shape = (X_train.shape[1], X_train.shape[2])
+print(input_shape)
 model = keras.Sequential()
 model.add(keras.layers.LSTM(units=32, input_shape=input_shape, stateful=True, batch_input_shape=(batch_size,)+input_shape))
 model.add(keras.layers.Dense(32, activation='tanh', kernel_initializer='normal'))

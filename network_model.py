@@ -25,19 +25,25 @@ def networkModel(network):
             #   ------- Input layer -------   #
             if (network['pooling'] is None):
                 if (network['cnn'] == 'vgg16'):
-                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE)
+                    input_shape = (network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE
                 if (network['cnn'] == 'resnet50'):
-                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE)
+                    input_shape = (network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE
                 if (network['cnn'] == 'inceptionV3'):
-                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE)
+                    input_shape = (network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE
             else:
                 if (network['cnn'] == 'vgg16'):
-                    layer_input = Input(shape=(network['time_steps'], CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2]))
+                    input_shape = (network['time_steps'], CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2])
                 if (network['cnn'] == 'resnet50'):
-                    layer_input = Input(shape=(network['time_steps'], CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2]))
+                    input_shape = (network['time_steps'], CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2])
                 if (network['cnn'] == 'inceptionV3'):
-                    layer_input = Input(shape=(network['time_steps'], CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2]))
-            #   ------- Hidden FC layer -------   #
+                    input_shape = (network['time_steps'], CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2])
+
+            if not network['lstm_stateful']:
+                layer_input = Input(shape=input_shape)
+            else:
+                layer_input = Input(shape=input_shape, batch_shape=(network['batch_size'],)+input_shape)
+
+           #   ------- Hidden FC layer -------   #
             if network['hiddenfc']:
                 layer_hidden_fc = TimeDistributed(
                             Dense(network['hiddenfc_size'],
@@ -59,9 +65,9 @@ def networkModel(network):
             #   ------- LSTM layer -------   #
             if network['lstm_batchnormalization']:
                 layer_batchnorm = BatchNormalization()(layer_linear_output)
-                layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_batchnorm)
+                layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'], stateful=network['lstm_stateful'])(layer_batchnorm)
             else:
-                layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_linear_output)
+                layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'], stateful=network['lstm_stateful'])(layer_linear_output)
             #   ------- Output -------  #
             if network['overlap_windows']:
                 layer_output = Dense(1, activation="linear")(layer_rnn)
@@ -69,30 +75,34 @@ def networkModel(network):
                 layer_output = Dense(network['time_steps'], activation="linear")(layer_rnn)
 
         else:
-            if (network['cnn'] == None):
+            if (network['cnn'] is None):
                 #   I didn't bother to program the case where a model has no cnn. You should already process it when building dataset
                 print_error("Erro in declaration of model "+network['model_name'])
                 print_error("Your model has to have a specified cnn layer")
                 exit(1)
             #   ------- Input layer -------   #
-            if (network['pooling'] == None):
+            if (network['pooling'] is None):
                 if (network['cnn'] == 'vgg16'):
-                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE)
+                    input_shape = (network['time_steps'],)+CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE
                 if (network['cnn'] == 'resnet50'):
-                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE)
+                    input_shape = (network['time_steps'],)+CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE
                 if (network['cnn'] == 'inceptionV3'):
-                    layer_input = Input(shape=(network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE)
+                    input_shape = (network['time_steps'],)+CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE
             else:
                 if (network['cnn'] == 'vgg16'):
-                    layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2]))
+                    input_shape = (network['time_steps'], CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE[2])
                 if (network['cnn'] == 'resnet50'):
-                    layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2]))
+                    input_shape = (network['time_steps'], CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE[2])
                 if (network['cnn'] == 'inceptionV3'):
-                    layer_input = Input(shape=(network['time_steps'],CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2]))
+                    input_shape = (network['time_steps'], CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE[2])
 
+            if not network['lstm_stateful']:
+                layer_input = Input(shape=input_shape)
+            else:
+                layer_input = Input(shape=input_shape, batch_shape=(network['batch_size'],)+input_shape)
             #   ------- LSTM layer -------   #
-
-            layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'])(layer_input)
+            
+            layer_rnn = LSTM(network['lstm_outputsize'], dropout=network['lstm_dropout'], stateful=network['lstm_stateful'])(layer_input)
 
             #   ------- Hidden FC layer -------   #
 
