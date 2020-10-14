@@ -86,7 +86,7 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, BLOCK_LIST = []):
     output_tensor = [None]*len(features)
     cont = 0
     for feature in features:
-        number_of_frames = feature[len(feature)-1]['frame']
+        number_of_frames = feature[len(feature)-1]['frame'] +1
         print("Total number of frames:", number_of_frames)
         number_of_categories = len(category_list)
         print("Total number of categories:", number_of_categories)
@@ -106,9 +106,8 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, BLOCK_LIST = []):
         for category in category_list:
             category_counter[category] = 0
 
-        while frame_counter < number_of_frames:
+        while frame_counter <= number_of_frames and index < len(feature):
             if feature[index]['frame'] == frame_counter:
-
                 #   Count number of apearences of this categorie
                 #   --------- Counting ---------
                 category_counter[feature[index]['category']] += 1

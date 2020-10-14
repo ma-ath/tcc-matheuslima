@@ -2,7 +2,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import keras
 
-from keras.layers import Input, LSTM, TimeDistributed, Dense, BatchNormalization
+from keras.layers import Input, LSTM, TimeDistributed, Dense, BatchNormalization, Concatenate, Flatten
 from keras.models import Model
 from keras import regularizers
 
@@ -157,6 +157,51 @@ def networkModel(network):
         else:
             layer_output = Dense(1, activation='linear')(layer_input)
 
+    #   This is just a test. Here, we add an alternative input to the model, with the
+    #   features extracted from the fasterRCNN (Pedro Cayres)
+    #
+    #   Basic model i made requires to use a hidden layer on the 
+    if network['fasterRCNN_support']:
+        if not network['hiddenfc']:
+            print_error("When using fasterRCNN auxiliary input, make sure to use a hidden layer on your model")
+            exit()
+        
+        #   Definition of input layer
+        #   I know it's mendokusai
+        if network['lstm']:
+            if not network['lstm_stateful']:
+                if network['fasterRCNN_type'] == 'dense':
+                    fasterRCNN_input_shape = (None, 6)
+                elif network['fasterRCNN_type'] == 'sparse':
+                    fasterRCNN_input_shape = (None, 5, 8, 2)
+            else:
+                if network['fasterRCNN_type'] == 'dense':
+                    fasterRCNN_input_shape = (network['batch_size'], 6)
+                elif network['fasterRCNN_type'] == 'sparse':
+                    fasterRCNN_input_shape = (network['batch_size'], 5, 8, 2)
+        else:
+            if network['fasterRCNN_type'] == 'dense':
+                fasterRCNN_input_shape = (None, 6)
+            elif network['fasterRCNN_type'] == 'sparse':
+                fasterRCNN_input_shape = (None, 5, 8, 2)
+
+        fasterRCNN_input = Input(batch_shape=fasterRCNN_input_shape)
+
+        #   When using the dense input, we need a Flatten layer before the hidden layer
+        if network['fasterRCNN_type'] == 'dense':
+            fasterRCNN_dense = Dense(network['fasterRCNN_dense_size'], activation='tanh')(fasterRCNN_input)                    
+        elif network['fasterRCNN_type'] == 'sparse':
+            fasterRCNN_flat = Flatten()(fasterRCNN_input)
+            fasterRCNN_dense = Dense(network['fasterRCNN_dense_size'], activation='tanh')(fasterRCNN_flat)                    
+
+        layer_concatenate = Concatenate(axis=1)([layer_hidden_fc, fasterRCNN_dense])
+        layer_kyotsu_dense = Dense(network['hiddenfc_size'], activation='tanh')(layer_concatenate)
+        layer_output = Dense(1, activation='linear')(layer_kyotsu_dense)
+
+        model = Model(inputs=[layer_input, fasterRCNN_input], outputs=layer_output)
+
+        return model
+
     model = Model(inputs=layer_input, outputs=layer_output)
 
     return model
@@ -176,7 +221,7 @@ if __name__ == "__main__":
 
         model.summary()
 
-        plot_model(model,show_shapes=True, show_layer_names=True)
+        plot_model(model, show_shapes=True, show_layer_names=True)
       
 def networkModel_leomazza(image_shape):
     #############################################################################

@@ -64,7 +64,7 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST =
     output_tensor = [None]*len(features)
     cont = 0
     for feature in features:
-        number_of_frames = feature[len(feature)-1]['frame']
+        number_of_frames = feature[len(feature)-1]['frame']+1
         print("Número total de frames:", number_of_frames)
         number_of_categories = len(category_list)
         print("Número total de categorias:", number_of_categories)
@@ -80,7 +80,7 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST =
         frame_counter = 0
         feature_counter = 0
         index = 0
-        while frame_counter < number_of_frames:
+        while frame_counter < number_of_frames and index < len(feature):
             if feature[index]['frame'] == frame_counter:
                 if feature_counter < FEATURES_PER_FRAME:
                     one_hot = category_to_vector(feature[index]['category'], category_list)
