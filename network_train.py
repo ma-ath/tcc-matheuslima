@@ -8,10 +8,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_GPU
-
 os.environ["PATH"] += os.pathsep + "/usr/bin/dot"
-
-
 
 from tensorflow import keras
 from keras.optimizers import Adam, SGD
@@ -29,12 +26,14 @@ import gc
 from keras.utils.vis_utils import plot_model
 
 def loadDataset(Fold_name,
-                CNN = "vgg16",
-                Pooling = "GAP",
-                LSTM = True,
-                time_steps = 3,
-                overlap_windows = True,
-                causal_prediction = True):
+                CNN="vgg16",
+                Pooling="GAP",
+                LSTM=True,
+                time_steps=3,
+                overlap_windows=True,
+                causal_prediction=True,
+                stateful=False,
+                batch_size=32):
 
     """
     Function that loads the dataset to the training process, using any struture
@@ -45,6 +44,8 @@ def loadDataset(Fold_name,
     time_steps:         How many frame inputs are there in one window of the LSTM
     overlap_windows:    If the window move "one-by-one", or "time_steps-by-time_steps"
     causal_prediction:  If the predicted audio sample is in the middle of the window (non-causal), or at the end of the window (causal)
+    stateful:           In case of a LSTM stateful network, dataset size has to be a multiple of batch_size. We do that by deleting some information
+    batch_size:         Batch size used on fitting process
     """
 
     #   Try loading the processed dataset from file:
@@ -238,6 +239,23 @@ def loadDataset(Fold_name,
         X_test = np.array(X_test).astype("float32")
         Y_test = np.array(Y_test).astype("float32")
 
+        """
+        On stateful LSTM networks, you have to pass the input_size (including the batch_size)
+        to the network when declaring it (throughout the batch_input_shape argument)
+
+        Therefore, lenght of the dataset has to me a multiple of batch_size.
+        We do that by deleting sufficient data;
+        """
+
+        if stateful:
+            while X_train.shape[0] % batch_size != 0:
+                X_train = np.delete(X_train, 1, axis=0)
+                Y_train = np.delete(Y_train, 1, axis=0)
+
+            while X_test.shape[0] % batch_size != 0:
+                X_test = np.delete(X_test, 1, axis=0)
+                Y_test = np.delete(Y_test, 1, axis=0)
+
         #   Do a manual memory free in these arrays
 
         del testing_images
@@ -248,24 +266,64 @@ def loadDataset(Fold_name,
 
         return X_train, Y_train, X_test, Y_test
 
-def statefulDataset(X_train, Y_train, X_test, Y_test, batch_size):
+def loadAuxiliaryInput(fold, input_type, LSTM, time_steps, causal_prediction, stateful, batch_size):
     """
-        On stateful LSTM networks, you have to pass the input_size (including the batch_size)
-        to the network when declaring it (throughout the batch_input_shape argument)
-
-        Therefore, lenght of the dataset has to me a multiple of batch_size.
-        We do that by deleting sufficient data;
+        This function only work for overlap_windows = True.
+        I did not bother writting the other cases because i'll not use in this work
     """
 
-    while X_train.shape[0] % batch_size != 0:
-        X_train = np.delete(X_train, 1, axis=0)
-        Y_train = np.delete(Y_train, 1, axis=0)
+    if causal_prediction:
+        target_size = 0     # If causal, we want to predict the audio volume at the last image of the batch
+    else:
+        target_size = int((time_steps-1)/2)  # If non causal, we want to predict the volume at the center of the batch
 
-    while X_test.shape[0] % batch_size != 0:
-        X_test = np.delete(X_test, 1, axis=0)
-        Y_test = np.delete(Y_test, 1, axis=0)
+    stack_train = []
+    for video_name in fold["training_videos"]:
+        video_name = video_name.replace(".MPG", ".json")
+        video_file = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+video_name+"."+input_type+".npy")
 
-    return X_train, Y_train, X_test, Y_test
+        if LSTM:
+            video_size = video_file.shape[0]
+            video_file = video_file[time_steps-target_size:video_size-target_size]
+
+        stack_train.append(video_file)
+    aux_X_train = np.array(stack_train[0])
+    del stack_train[0]
+    for video in stack_train:
+        video = np.array(video).astype("float32")
+        aux_X_train = np.vstack(aux_X_train, video)
+
+    stack_test = []
+    for video_name in fold["testing_videos"]:
+        video_name = video_name.replace(".MPG", ".json")
+        video_file = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+video_name+"."+input_type+".npy")
+
+        if LSTM:
+            video_size = video_file.shape[0]
+            video_file = video_file[time_steps-target_size:video_size-target_size]
+
+        stack_test.append(video_file)
+    aux_X_test = np.array(stack_test[0])
+    del stack_test[0]
+    for video in stack_test:
+        video = np.array(video).astype("float32")
+        aux_X_test = np.vstack(aux_X_test, video)
+
+    """
+    On stateful LSTM networks, you have to pass the input_size (including the batch_size)
+    to the network when declaring it (throughout the batch_input_shape argument)
+
+    Therefore, lenght of the dataset has to me a multiple of batch_size.
+    We do that by deleting sufficient data;
+    """
+
+    if stateful:
+        while aux_X_train.shape[0] % batch_size != 0:
+            aux_X_train = np.delete(aux_X_train, 1, axis=0)
+        while aux_X_test.shape[0] % batch_size != 0:
+            aux_X_test = np.delete(aux_X_test, 1, axis=0)
+    
+    return aux_X_train, aux_X_test
 
 try:
     """
@@ -278,7 +336,6 @@ try:
         telegramSendMessage("Stating training in fold "+str(fold['number']))
 
         for network in networks:
-
             results_datapath = CONST_STR_RESULTS_DATAPATH+fold['name']+'/'+network['model_name']
 
             if not os.path.isfile(results_datapath+'/lossPlot.png'):    #If this file exists, this test was already done
@@ -297,22 +354,23 @@ try:
                                 LSTM=network['lstm'],
                                 time_steps=network['time_steps'],
                                 overlap_windows=network['overlap_windows'],
-                                causal_prediction=network['causal_prediction'])
+                                causal_prediction=network['causal_prediction'],
+                                stateful=network['lstm_stateful'],
+                                batch_size=network['batch_size'])
 
                 telegramSendMessage('Starting training process for '+network['model_name'])
 
-                #   Load auxiliary input, in case of using a fasterRCNN auxiliary input
-                #   Meanwhile it's set by hand to test code
-                #   This is not intendent to be used on server
                 if network['fasterRCNN_support']:
-                    frcnn_X_train = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+"M2U00003.json.dense.npy")
-                    frcnn_X_test = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+"M2U00004.json.dense.npy")
-
-                    #   Conform frcnn dataset to normal dataset
-                    while frcnn_X_train.shape[0] > X_train.shape[0]:
-                        frcnn_X_train = np.delete(frcnn_X_train, 1, axis=0)
-                    while frcnn_X_test.shape[0] > X_test.shape[0]:
-                        frcnn_X_test = np.delete(frcnn_X_test, 1, axis=0)
+                    print_warning("Using a fasterRCNN based auxiliary input")
+                    print_warning("In order to use this auxiliary input, you should before run the experimental script jsonToTensor.py that transforms the extracted json features from the RCNN to a numpy tensor. Those json lists can be found on dataset/fasterRCNN_features. (Special thanks for Pedro Cayres for the extraction)")
+                    frcnn_X_train, frcnn_X_test = loadAuxiliaryInput(
+                                                    fold=fold,
+                                                    input_type=network['fasterRCNN_type'],
+                                                    LSTM=network['lstm'],
+                                                    time_steps=network['time_steps'],
+                                                    causal_prediction=network['causal_prediction'],
+                                                    stateful=network['lstm_stateful'],
+                                                    batch_size=network['batch_size'])
 
                     X_train = [X_train, frcnn_X_train]
                     X_test = [X_test, frcnn_X_test]
@@ -375,10 +433,10 @@ try:
                 model.summary()
                 #  Plot model has given me too many "pydot` failed to call GraphViz" errors. It's not so important
                 #
-                plot_model(model,
-                            to_file=results_datapath+'/model_plot.png',
-                            show_shapes=True,
-                            show_layer_names=True)
+                #plot_model(model,
+                #            to_file=results_datapath+'/model_plot.png',
+                #            show_shapes=True,
+                #            show_layer_names=True)
                 netconfig_file.close()
 
                 #Fit model
@@ -393,15 +451,6 @@ try:
                         validation_data=(X_test, Y_test),
                         callbacks=callback)
                 else:
-                    #   Conform the dataset to stateful standard
-                    #   Dont shuffle input data
-                    [
-                        X_train,
-                        Y_train,
-                        X_test,
-                        Y_test
-                    ] = statefulDataset(X_train, Y_train, X_test, Y_test, network['batch_size'])
-
                     for i in range(network['epochs']):
                         history = model.fit(
                             X_train,
@@ -416,6 +465,8 @@ try:
                         if i == 0:
                             fit_history = history
                             best_checkpoint = history.history['val_loss'][0]
+                            print_info("Saving checkpoint model")
+                            save_weights(model, results_datapath, filename="model_checkpoint.hdf5")
                         else:
                             if history.history['val_loss'][0] < best_checkpoint:
                                 print_info("Validation loss improved from "+str(best_checkpoint)+" to "+str(history.history['val_loss'][0]))
@@ -432,11 +483,10 @@ try:
 
                         #   Code to save prediction for each epoch
                         #   Only used on special occasions
-
-                        Y_predicted = model.predict(X_test, batch_size=network['batch_size'])
-                        Y_predicted = np.reshape(Y_predicted, (Y_predicted.shape[0]*Y_predicted.shape[1], 1))
-                        Y_vtest = np.reshape(Y_test, (Y_predicted.shape[0]*Y_predicted.shape[1], 1))
-                        plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test_lastepoch_'+str(i)+'.png')
+                        #Y_predicted = model.predict(X_test, batch_size=network['batch_size'])
+                        #Y_predicted = np.reshape(Y_predicted, (Y_predicted.shape[0]*Y_predicted.shape[1], 1))
+                        #Y_vtest = np.reshape(Y_test, (Y_predicted.shape[0]*Y_predicted.shape[1], 1))
+                        #plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test_lastepoch_'+str(i)+'.png')
 
                 telegramSendMessage('Network '+network['model_name']+' training process ended successfully')
 
@@ -454,17 +504,7 @@ try:
 
                 # # ------------------- predicte over test set ------------------- #
                 print_info("Predicting output for test data over last epoch")
-                #Y_predicted = []
-                #Y_vtest = Y_test
-                #
-                # Prepare a predictionSamples vector, in order to plot it
-                #for i in range(X_test.shape[0]):
-                #    X_predict = np.expand_dims(X_test[i], 0)
-                #    prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                #    newshape = (network['time_steps'], 1)
-                #    prediction = prediction[0]
-                #    Y_predicted.append(prediction)
-                #Y_predicted = np.array(Y_predicted).astype("float32")
+
                 Y_predicted = model.predict(X_test, batch_size=network['batch_size'])
                 PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
                 newshape = (PLOT_SIZE, 1)
@@ -474,7 +514,7 @@ try:
                 np.save(results_datapath+'/res_real_lastepoch_test.npy', Y_vtest[0:PLOT_SIZE])
                 np.save(results_datapath+'/res_prediction_lastepoch_test.npy', Y_predicted)
 
-                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath,image_name='/prediction_Test_lastepoch.png')
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Test_lastepoch.png')
                 # ------------------- predicte over train set ------------------- #
                 """
                 print_info("Predicting output for train data over last epoch")
@@ -505,17 +545,7 @@ try:
                 # # ------------------- Load best checkpoint weigths ------------------- # #
                 # # ------------------- predicte over test set ------------------- #
                 print_info("Predicting output for test data over best checkpoint")
-                #Y_predicted = []
-                #Y_vtest = Y_test
-                #
-                # Prepare a predictionSamples vector, in order to plot it
-                #for i in range(X_test.shape[0]):
-                #    X_predict = np.expand_dims(X_test[i], 0)
-                #    prediction = model.predict(X_predict, batch_size=network['batch_size'])
-                #    newshape = (network['time_steps'], 1)
-                #    prediction = prediction[0]
-                #    Y_predicted.append(prediction)
-                #Y_predicted = np.array(Y_predicted).astype("float32")
+
                 Y_predicted = model.predict(X_test, batch_size=network['batch_size'])
                 PLOT_SIZE = Y_predicted.shape[0]*Y_predicted.shape[1]
                 newshape = (PLOT_SIZE, 1)
