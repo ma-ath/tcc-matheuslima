@@ -1,6 +1,6 @@
 from include.globals_and_functions import *
 
-net_number = 1
+net_number = 12
 networks = [dict() for i in range(net_number)]
 
 #   Diferent parameters generation  --------------------------------- #
@@ -9,10 +9,10 @@ networks = [dict() for i in range(net_number)]
 for i in range(net_number):
     networks[i]['model_name'] = 'model_foldtraining_'+str(i+30)
     # --- loadDataset --- #
-    #networks[i]['cnn'] = 'inceptionV3'
+    #networks[i]['cnn'] = 'vgg16'
     networks[i]['pooling'] = 'GAP'
-    networks[i]['lstm'] = False
-    #networks[i]['time_steps'] = 20
+    networks[i]['lstm'] = True
+    #networks[i]['time_steps'] = 9
     networks[i]['overlap_windows'] = True
     networks[i]['causal_prediction'] = False
     # --- loadDataset --- #
@@ -20,13 +20,13 @@ for i in range(net_number):
     networks[i]['lstm_outputsize'] = 32
     networks[i]['lstm_dropout'] = 0.2
     networks[i]['lstm_batchnormalization'] = False
-    networks[i]['lstm_stateful'] = False
+    networks[i]['lstm_stateful'] = True
     networks[i]['hiddenfc_before_lstm'] = False
     #networks[i]['hiddenfc'] = True
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
-    networks[i]['fasterRCNN_support'] = True
+    networks[i]['fasterRCNN_support'] = False
     networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
     networks[i]['fasterRCNN_dense_size'] = 128
     # --- networkModel --- #
@@ -35,13 +35,57 @@ for i in range(net_number):
     networks[i]['optimizer'] = 'adam'
     networks[i]['loss_function'] = 'mse'
     networks[i]['batch_size'] = 32
-    networks[i]['epochs'] = 500
+    networks[i]['epochs'] = 50
     # --- training --- #
 
 #   0
 networks[0]['cnn'] = 'vgg16'
 networks[0]['time_steps'] = 9
 networks[0]['hiddenfc'] = True
+#   1
+networks[1]['cnn'] = 'vgg16'
+networks[1]['time_steps'] = 32
+networks[1]['hiddenfc'] = True
+#   2
+networks[2]['cnn'] = 'resnet50'
+networks[2]['time_steps'] = 9
+networks[2]['hiddenfc'] = True
+#   3
+networks[3]['cnn'] = 'resnet50'
+networks[3]['time_steps'] = 32
+networks[3]['hiddenfc'] = True
+#   4
+networks[4]['cnn'] = 'inceptionV3'
+networks[4]['time_steps'] = 9
+networks[4]['hiddenfc'] = True
+#   5
+networks[5]['cnn'] = 'inceptionV3'
+networks[5]['time_steps'] = 32
+networks[5]['hiddenfc'] = True
+#   6
+networks[6]['cnn'] = 'vgg16'
+networks[6]['time_steps'] = 9
+networks[6]['hiddenfc'] = False
+#   7
+networks[7]['cnn'] = 'vgg16'
+networks[7]['time_steps'] = 32
+networks[7]['hiddenfc'] = False
+#   8
+networks[8]['cnn'] = 'resnet50'
+networks[8]['time_steps'] = 9
+networks[8]['hiddenfc'] = False
+#   9
+networks[9]['cnn'] = 'resnet50'
+networks[9]['time_steps'] = 32
+networks[9]['hiddenfc'] = False
+#   10
+networks[10]['cnn'] = 'inceptionV3'
+networks[10]['time_steps'] = 9
+networks[10]['hiddenfc'] = False
+#   11
+networks[11]['cnn'] = 'inceptionV3'
+networks[11]['time_steps'] = 32
+networks[11]['hiddenfc'] = False
 
 """
 The following networks are the ones trained between october 4 and october 13

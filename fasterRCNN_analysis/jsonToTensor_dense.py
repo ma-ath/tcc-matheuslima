@@ -138,7 +138,29 @@ if __name__ == '__main__':
         'M2U00007.json',
         'M2U00008.json',
         'M2U00012.json',
-        'M2U00014.json']
+        'M2U00014.json',
+        "M2U00017.json",
+        "M2U00015.json",
+        "M2U00016.json",
+        "M2U00022.json",
+        "M2U00025.json",
+        "M2U00026.json",
+        "M2U00029.json",
+        "M2U00030.json",
+        "M2U00031.json",
+        "M2U00032.json",
+        "M2U00033.json",
+        "M2U00035.json",
+        "M2U00036.json",
+        "M2U00037.json",
+        "M2U00039.json",
+        "M2U00043.json",
+        "M2U00045.json",
+        "M2U00046.json",
+        "M2U00047.json",
+        "M2U00048.json",
+        "M2U00050.json"
+    ]
 
     block_list = [
         'suitcase',
@@ -184,12 +206,17 @@ if __name__ == '__main__':
         'elephant',
         'cow',
         'parking meter',
-        'traffic light'
+        'traffic light',
+        'toilet',
+        'fork',
+        'kite',
+        'giraffe',
+        'tie'
     ]
 
-    tensors = JSON_to_tensor(json_list, MIN_SCORE=0.9, BLOCK_LIST=block_list)
+    tensors = JSON_to_tensor(json_list, MIN_SCORE=0.70, BLOCK_LIST=block_list)
     for i in range(len(tensors)):
         print("Salvando tensor no disco")
-        np.save("fasterRCNN_analysis/"+json_list[i]+".dense", tensors[i])
+        np.save("dataset/fasterRCNN_features/"+json_list[i]+".dense", tensors[i])
         sparsity = 1.0 - count_nonzero(tensors[i]) / tensors[i].size
         print(json_list[i], "sparsity:", sparsity)
