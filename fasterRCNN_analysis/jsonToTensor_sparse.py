@@ -58,7 +58,7 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST =
         print(category)
 
     #   Cria e preenche o vetor numpy de saida.
-    #   o vetor de saída é da seguinte forma: [Frame,Caracteristicas,categoria,score,w1,w2,h1,h2]
+    #   o vetor de saída é da seguinte forma: [Frame,nº de caracteristicas,caracteristicas(onehot+score+size)]
     #   Número de frames é o ultimo frame da ultima feature
 
     output_tensor = [None]*len(features)
@@ -70,7 +70,7 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST =
         print("Número total de categorias:", number_of_categories)
 
         output_tensor[cont] = np.zeros(
-                            shape=(number_of_frames, FEATURES_PER_FRAME, number_of_categories, 2)
+                            shape=(number_of_frames, FEATURES_PER_FRAME, number_of_categories+2)
                             )
 
         print("Output tensor shape:", output_tensor[cont].shape)
@@ -84,22 +84,13 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST =
             if feature[index]['frame'] == frame_counter:
                 if feature_counter < FEATURES_PER_FRAME:
                     one_hot = category_to_vector(feature[index]['category'], category_list)
-                    
-                    #feat =  np.array([feature[index]['score'],
-                    #            feature[index]['bbox'][0],
-                    #            feature[index]['bbox'][1],
-                    #            feature[index]['bbox'][2],
-                    #            feature[index]['bbox'][3]])
-                    
+          
                     size = (feature[index]['bbox'][0]-feature[index]['bbox'][1])*(feature[index]['bbox'][2]-feature[index]['bbox'][3])
                     size = m.sqrt(abs(size))
-                    feat =  np.array([feature[index]['score'],size])
+                    feat =  np.array([feature[index]['score'], size])
 
-                    feature_concat = np.zeros(shape=(number_of_categories, len(feat)))
-                    for i in range(number_of_categories):
-                        if one_hot[i] == 1:
-                            feature_concat[i] = feat
-                    
+                    feature_concat = np.concatenate((feat, one_hot))
+                  
                     output_tensor[cont][frame_counter][feature_counter] = feature_concat
 
                     feature_counter += 1
@@ -202,7 +193,7 @@ if __name__ == '__main__':
         'tie'
     ]
 
-    tensors = JSON_to_tensor(json_list, FEATURES_PER_FRAME=5, MIN_SCORE=0.6, BLOCK_LIST=block_list)
+    tensors = JSON_to_tensor(json_list, FEATURES_PER_FRAME=20, MIN_SCORE=0.7, BLOCK_LIST=block_list)
     for i in range(len(tensors)):
         print("Salvando tensor no disco")
         np.save("dataset/fasterRCNN_features/"+json_list[i]+".sparse", tensors[i])
