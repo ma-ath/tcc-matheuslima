@@ -5,6 +5,9 @@ networks = [dict() for i in range(net_number)]
 
 #   Diferent parameters generation  --------------------------------- #
 
+"""
+The following networks are the ones trained between october 25 and november 6
+
 #   FIXED PARAMETERS FOR ALL NETWORKS
 for i in range(net_number):
     networks[i]['model_name'] = 'model_foldtraining_'+str(i+30)
@@ -86,7 +89,7 @@ networks[10]['hiddenfc'] = False
 networks[11]['cnn'] = 'inceptionV3'
 networks[11]['time_steps'] = 32
 networks[11]['hiddenfc'] = False
-
+"""
 """
 The following networks are the ones trained between october 4 and october 13
 
