@@ -173,7 +173,7 @@ def networkModel(network):
                 if network['fasterRCNN_type'] == 'dense':
                     fasterRCNN_input_shape = (None, 6)
                 elif network['fasterRCNN_type'] == 'sparse':
-                    fasterRCNN_input_shape = (None, 5, 8, 2)
+                    fasterRCNN_input_shape = (None, 20, 8)
             else:
                 if network['fasterRCNN_type'] == 'dense':
                     fasterRCNN_input_shape = (network['batch_size'], 6)
@@ -183,7 +183,7 @@ def networkModel(network):
             if network['fasterRCNN_type'] == 'dense':
                 fasterRCNN_input_shape = (None, 6)
             elif network['fasterRCNN_type'] == 'sparse':
-                fasterRCNN_input_shape = (None, 5, 8, 2)
+                fasterRCNN_input_shape = (None, 20, 8)
 
         fasterRCNN_input = Input(batch_shape=fasterRCNN_input_shape)
 
