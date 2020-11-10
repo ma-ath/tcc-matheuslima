@@ -291,7 +291,7 @@ def loadAuxiliaryInput(fold, input_type, LSTM, time_steps, causal_prediction, st
     del stack_train[0]
     for video in stack_train:
         video = np.array(video).astype("float32")
-        aux_X_train = np.vstack(aux_X_train, video)
+        aux_X_train = np.vstack((aux_X_train, video))
 
     stack_test = []
     for video_name in fold["testing_videos"]:
@@ -307,7 +307,7 @@ def loadAuxiliaryInput(fold, input_type, LSTM, time_steps, causal_prediction, st
     del stack_test[0]
     for video in stack_test:
         video = np.array(video).astype("float32")
-        aux_X_test = np.vstack(aux_X_test, video)
+        aux_X_test = np.vstack((aux_X_test, video))
 
     """
     On stateful LSTM networks, you have to pass the input_size (including the batch_size)

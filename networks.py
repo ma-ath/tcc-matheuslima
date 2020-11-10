@@ -5,6 +5,94 @@ networks = [dict() for i in range(net_number)]
 
 #   Diferent parameters generation  --------------------------------- #
 
+#   FIXED PARAMETERS FOR ALL NETWORKS
+for i in range(net_number):
+    networks[i]['model_name'] = 'model_foldtraining_'+str(i+42)
+    # --- loadDataset --- #
+    #networks[i]['cnn'] = 'inceptionV3'
+    networks[i]['pooling'] = 'GAP'
+    #networks[i]['lstm'] = True
+    networks[i]['time_steps'] = 32
+    networks[i]['overlap_windows'] = True
+    networks[i]['causal_prediction'] = False
+    # --- loadDataset --- #
+    # --- networkModel --- #
+    networks[i]['lstm_outputsize'] = 128
+    networks[i]['lstm_dropout'] = 0.2
+    networks[i]['lstm_stateful'] = False
+    networks[i]['hiddenfc_before_lstm'] = False
+    networks[i]['hiddenfc'] = True
+    networks[i]['hiddenfc_activation'] = 'tanh'
+    networks[i]['hiddenfc_size'] = 128
+    networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['fasterRCNN_support'] = True
+    #networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
+    networks[i]['fasterRCNN_dense_size'] = 64
+    # --- networkModel --- #
+    # --- training --- #
+    networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
+    networks[i]['optimizer'] = 'adam'
+    networks[i]['loss_function'] = 'mse'
+    networks[i]['batch_size'] = 32
+    networks[i]['epochs'] = 50
+    # --- training --- #
+#   0
+networks[0]['cnn'] = 'vgg16'
+networks[0]['lstm'] = True
+networks[0]['fasterRCNN_type'] = 'dense'
+#   1
+networks[1]['cnn'] = 'resnet50'
+networks[1]['lstm'] = True
+networks[1]['fasterRCNN_type'] = 'dense'
+#   2
+networks[2]['cnn'] = 'inceptionV3'
+networks[2]['lstm'] = True
+networks[2]['fasterRCNN_type'] = 'dense'
+#   3
+networks[3]['cnn'] = 'vgg16'
+networks[3]['lstm'] = True
+networks[3]['fasterRCNN_type'] = 'sparse'
+#   4
+networks[4]['cnn'] = 'resnet50'
+networks[4]['lstm'] = True
+networks[4]['fasterRCNN_type'] = 'sparse'
+#   5
+networks[5]['cnn'] = 'inceptionV3'
+networks[5]['lstm'] = True
+networks[5]['fasterRCNN_type'] = 'sparse'
+#   6
+networks[6]['cnn'] = 'vgg16'
+networks[6]['lstm'] = False
+networks[6]['time_steps'] = 9   #Irrelevant
+networks[6]['fasterRCNN_type'] = 'dense'
+#   7
+networks[7]['cnn'] = 'resnet50'
+networks[7]['lstm'] = False
+networks[7]['time_steps'] = 9   #Irrelevant
+networks[7]['fasterRCNN_type'] = 'dense'
+#   8
+networks[8]['cnn'] = 'inceptionV3'
+networks[8]['lstm'] = False
+networks[8]['time_steps'] = 9   #Irrelevant
+networks[8]['fasterRCNN_type'] = 'dense'
+#   9
+networks[9]['cnn'] = 'vgg16'
+networks[9]['lstm'] = False
+networks[9]['time_steps'] = 9   #Irrelevant
+networks[9]['fasterRCNN_type'] = 'sparse'
+#   10
+networks[10]['cnn'] = 'resnet50'
+networks[10]['lstm'] = False
+networks[10]['time_steps'] = 9   #Irrelevant
+networks[10]['fasterRCNN_type'] = 'sparse'
+#   11
+networks[11]['cnn'] = 'inceptionV3'
+networks[11]['lstm'] = False
+networks[11]['time_steps'] = 9   #Irrelevant
+networks[11]['fasterRCNN_type'] = 'sparse'
+
+#   Diferent parameters generation  --------------------------------- #
+
 """
 The following networks are the ones trained between october 25 and november 6
 
