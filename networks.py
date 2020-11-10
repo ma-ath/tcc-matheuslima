@@ -105,7 +105,7 @@ for i in range(net_number):
     networks[i]['causal_prediction'] = False
     # --- loadDataset --- #
     # --- networkModel --- #
-    networks[i]['lstm_outputsize'] = 32
+    networks[i]['lstm_outputsize'] = 128
     networks[i]['lstm_dropout'] = 0.2
     networks[i]['lstm_batchnormalization'] = False
     networks[i]['lstm_stateful'] = False
@@ -114,6 +114,9 @@ for i in range(net_number):
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['fasterRCNN_support'] = False
+    networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
+    networks[i]['fasterRCNN_dense_size'] = 128
     # --- networkModel --- #
     # --- training --- #
     networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
@@ -200,6 +203,9 @@ for i in range(net_number):
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['fasterRCNN_support'] = False
+    networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
+    networks[i]['fasterRCNN_dense_size'] = 128
     # --- networkModel --- #
     # --- training --- #
     networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]

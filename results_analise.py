@@ -18,10 +18,9 @@ my_csv = [None]*NUMBER_OF_FOLDS*NUMBER_OF_MODELS
 for fold in range(NUMBER_OF_FOLDS):
     for model in range(NUMBER_OF_MODELS):
         my_csv[NUMBER_OF_MODELS*fold+model] = pd.read_csv(join('results-true', 'fold_'+str(fold), 'model_foldtraining_'+str(model), 'fit_history.csv'))
-
 hor_concat = [None]*NUMBER_OF_FOLDS
 for i in range(NUMBER_OF_FOLDS):
-    hor_concat[i] = pd.concat([my_csv[j] for j in range(NUMBER_OF_MODELS)], axis=1)
+    hor_concat[i] = pd.concat([my_csv[NUMBER_OF_MODELS*i+j] for j in range(NUMBER_OF_MODELS)], axis=1)
 
 myFit_history = pd.concat([hor_concat[i] for i in range(NUMBER_OF_FOLDS)], axis=0)
 
