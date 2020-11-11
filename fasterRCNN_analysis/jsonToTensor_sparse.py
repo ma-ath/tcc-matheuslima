@@ -5,6 +5,7 @@ import json
 from tqdm import tqdm
 import numpy as np
 import math as m
+import pickle
 
 def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST = []):
 
@@ -57,6 +58,64 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST =
     for category in category_list:
         print(category)
 
+    #   --------- Checar   ---------
+    video_number = [1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    12,
+                    14,
+                    15,
+                    16,
+                    17,
+                    18,
+                    19,
+                    22,
+                    23,
+                    24,
+                    25,
+                    26,
+                    27,
+                    29,
+                    30,
+                    31,
+                    32,
+                    33,
+                    35,
+                    36,
+                    37,
+                    39,
+                    41,
+                    42,
+                    43,
+                    45,
+                    46,
+                    47,
+                    48,
+                    50
+    ]
+
+    for i in range(len(json_list)):
+        print(json_list[i])
+
+        with open("fasterRCNN_analysis/nmb_of_frames_"+str(video_number[i]), "rb") as fp:
+            nmb_of_frames = pickle.load(fp)
+        
+        frame_now = 0
+        for j in range(len(features[i])):
+            if int(features[i][j]['frame']) != frame_now:
+                if int(features[i][j]['frame']) == frame_now+1:
+                    frame_now += 1
+                else:
+                    # print("frame_now", frame_now, "features[i][j]['frame']", features[i][j]['frame'])
+                    frame_now = int(features[i][j]['frame'])
+        print("Ultimo frame:", features[i][len(features[i])-1]['frame'])
+        print("nmb_of_frames:", nmb_of_frames-1)
+
     #   Cria e preenche o vetor numpy de saida.
     #   o vetor de saída é da seguinte forma: [Frame,nº de caracteristicas,caracteristicas(onehot+score+size)]
     #   Número de frames é o ultimo frame da ultima feature
@@ -64,7 +123,9 @@ def JSON_to_tensor(json_list, MIN_SCORE=0.5, FEATURES_PER_FRAME=10, BLOCK_LIST =
     output_tensor = [None]*len(features)
     cont = 0
     for feature in features:
-        number_of_frames = feature[len(feature)-1]['frame']+1
+        with open("fasterRCNN_analysis/nmb_of_frames_"+str(video_number[cont]), "rb") as fp:
+            number_of_frames = pickle.load(fp)
+        # number_of_frames = feature[len(feature)-1]['frame']+1
         print("Número total de frames:", number_of_frames)
         number_of_categories = len(category_list)
         print("Número total de categorias:", number_of_categories)
