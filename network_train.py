@@ -392,9 +392,9 @@ try:
                 # This is the learning rate scheduler, it changes the learning rate of fit
                 # depending in the current epoch
                 def scheduler(epoch):
-                    if epoch < 30:
+                    if epoch < 100:
                         return network['learning_schedule'][0]
-                    elif epoch < 50:
+                    elif epoch < 200:
                         return network['learning_schedule'][1]
                     else:
                         return network['learning_schedule'][2]

@@ -2,7 +2,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import keras
 
-from keras.layers import Input, LSTM, TimeDistributed, Dense, BatchNormalization, Concatenate, Flatten
+from keras.layers import Input, LSTM, TimeDistributed, Dense, BatchNormalization, Concatenate, Flatten, Dropout
 from keras.models import Model
 from keras import regularizers
 
@@ -45,11 +45,12 @@ def networkModel(network):
 
            #   ------- Hidden FC layer -------   #
             if network['hiddenfc']:
-                layer_hidden_fc = TimeDistributed(
+                layer_hidden_fc_before_dropout = TimeDistributed(
                             Dense(network['hiddenfc_size'],
                             activation=network['hiddenfc_activation'],
                             activity_regularizer=network['hiddenfc_activity_regularizer'])
                                 )(layer_input)
+                layer_hidden_fc = Dropout(network['hiddenfc_dropout'])(layer_hidden_fc_before_dropout)
 
                 #   ------- Linear layer -------   #
                 if network['overlap_windows']:
@@ -108,9 +109,11 @@ def networkModel(network):
 
             if network['hiddenfc']:
 
-                layer_hidden_fc = Dense(network['hiddenfc_size'],
+                layer_hidden_fc_before_dropout = Dense(network['hiddenfc_size'],
                             activation=network['hiddenfc_activation'],
                             activity_regularizer=network['hiddenfc_activity_regularizer'])(layer_rnn)
+
+                layer_hidden_fc = Dropout(network['hiddenfc_dropout'])(layer_hidden_fc_before_dropout)
 
                 #   ------- Output layer -------   #
                 if network['overlap_windows']:
@@ -147,9 +150,10 @@ def networkModel(network):
         #   ------- Hidden FC layer -------   #
         if network['hiddenfc']:
 
-            layer_hidden_fc = Dense(network['hiddenfc_size'],
+            layer_hidden_fc_before_dropout = Dense(network['hiddenfc_size'],
                         activation=network['hiddenfc_activation'],
                         activity_regularizer=network['hiddenfc_activity_regularizer'])(layer_input)
+            layer_hidden_fc = Dropout(network['hiddenfc_dropout'])(layer_hidden_fc_before_dropout)
 
             #   ------- Output layer -------   #
             layer_output = Dense(1, activation='linear')(layer_hidden_fc)

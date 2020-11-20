@@ -10,7 +10,7 @@ def moving_average(a, n):
     return ret[n - 1:] / n
 
 NUMBER_OF_FOLDS = 10
-NUMBER_OF_MODELS = 42
+NUMBER_OF_MODELS = 53
 
 ###############################EXCEL DE FIT HISTORY#######################################################
 print('processing fit_history data')
