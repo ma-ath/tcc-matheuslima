@@ -1,7 +1,58 @@
 from include.globals_and_functions import *
 
-net_number = 6
+net_number = 4
 networks = [dict() for i in range(net_number)]
+
+for i in range(net_number):
+    networks[i]['model_name'] = 'model_foldtraining_'+str(i+60)
+    # --- loadDataset --- #
+    networks[i]['cnn'] = 'vgg16'
+    networks[i]['pooling'] = 'GAP'
+    #networks[i]['lstm'] = True
+    networks[i]['time_steps'] = 32
+    networks[i]['overlap_windows'] = True
+    networks[i]['causal_prediction'] = False
+    # --- loadDataset --- #
+    # --- networkModel --- #
+    networks[i]['lstm_outputsize'] = 128
+    networks[i]['lstm_dropout'] = 0.2
+    networks[i]['lstm_stateful'] = False
+    networks[i]['hiddenfc_before_lstm'] = False
+    networks[i]['hiddenfc'] = True
+    networks[i]['hiddenfc_activation'] = 'tanh'
+    networks[i]['hiddenfc_size'] = 128
+    #networks[i]['hiddenfc_activity_regularizer'] = None
+    #networks[i]['hiddenfc_dropout'] = 0
+    networks[i]['fasterRCNN_support'] = False
+    networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
+    networks[i]['fasterRCNN_dense_size'] = 64
+    # --- networkModel --- #
+    # --- training --- #
+    networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
+    networks[i]['optimizer'] = 'adam'
+    networks[i]['loss_function'] = 'mse'
+    networks[i]['batch_size'] = 32
+    networks[i]['epochs'] = 300
+    # --- training --- #
+#   0
+networks[0]['lstm'] = True
+networks[0]['hiddenfc_activity_regularizer'] = 'l2'
+networks[0]['hiddenfc_dropout'] = 0
+#   1
+networks[1]['lstm'] = True
+networks[1]['hiddenfc_activity_regularizer'] = None
+networks[1]['hiddenfc_dropout'] = 0.5
+#   2
+networks[2]['lstm'] = False
+networks[2]['hiddenfc_activity_regularizer'] = 'l2'
+networks[2]['hiddenfc_dropout'] = 0
+#   3
+networks[3]['lstm'] = False
+networks[3]['hiddenfc_activity_regularizer'] = None
+networks[3]['hiddenfc_dropout'] = 0.5
+
+"""
+    I still have to run these networks. I paused this training to do some other more-important training before
 
 #   FIXED PARAMETERS FOR ALL NETWORKS
 for i in range(net_number):
@@ -23,6 +74,7 @@ for i in range(net_number):
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['hiddenfc_dropout'] = 0
     networks[i]['fasterRCNN_support'] = True
     #networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
     networks[i]['fasterRCNN_dense_size'] = 64
@@ -31,7 +83,7 @@ for i in range(net_number):
     networks[i]['learning_schedule'] = [0.0001, 5e-05, 1e-05]
     networks[i]['optimizer'] = 'adam'
     networks[i]['loss_function'] = 'mse'
-    networks[i]['batch_size'] = 9
+    networks[i]['batch_size'] = 32
     networks[i]['epochs'] = 50
     # --- training --- #
 #   0
@@ -58,7 +110,7 @@ networks[4]['fasterRCNN_type'] = 'sparse'
 networks[5]['cnn'] = 'inceptionV3'
 networks[5]['lstm'] = True
 networks[5]['fasterRCNN_type'] = 'sparse'
-
+"""
 #   Diferent parameters generation  --------------------------------- #
 """
     Networks trained between november 10 and november 17
@@ -82,6 +134,7 @@ for i in range(net_number):
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['hiddenfc_dropout'] = 0
     networks[i]['fasterRCNN_support'] = True
     #networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
     networks[i]['fasterRCNN_dense_size'] = 64
@@ -174,6 +227,7 @@ for i in range(net_number):
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['hiddenfc_dropout'] = 0
     networks[i]['fasterRCNN_support'] = False
     networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
     networks[i]['fasterRCNN_dense_size'] = 128
@@ -259,6 +313,7 @@ for i in range(net_number):
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['hiddenfc_dropout'] = 0
     networks[i]['fasterRCNN_support'] = False
     networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
     networks[i]['fasterRCNN_dense_size'] = 128
@@ -348,6 +403,7 @@ for i in range(net_number):
     networks[i]['hiddenfc_activation'] = 'tanh'
     networks[i]['hiddenfc_size'] = 128
     networks[i]['hiddenfc_activity_regularizer'] = None
+    networks[i]['hiddenfc_dropout'] = 0
     networks[i]['fasterRCNN_support'] = False
     networks[i]['fasterRCNN_type'] = 'dense'    #'dense' or 'sparse'
     networks[i]['fasterRCNN_dense_size'] = 128
