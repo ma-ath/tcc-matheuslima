@@ -50,31 +50,31 @@ def loadDataset(Fold_name,
 
     #   Try loading the processed dataset from file:
     if (CNN == "vgg16"):
-        dataset_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_VGG16
+        dataset_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,CONST_STR_DATASET_FEATURES_VGG16)
     elif (CNN == "inceptionV3"):
-        dataset_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_INCEPTIONV3
+        dataset_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,CONST_STR_DATASET_FEATURES_INCEPTIONV3)
     elif (CNN == "resnet50"):
-        dataset_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_RESNET50
+        dataset_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,CONST_STR_DATASET_FEATURES_RESNET50)
     elif (CNN == None):
-        dataset_datapath = CONST_STR_DATASET_FOLDS_DATAPATH
+        dataset_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH)
     else:
         print_error("CNN not suported for dataset loading")
         telegramSendMessage("[ERRO] CNN not suported for dataset loading")
         exit(1)
 
     if not (CNN == None):
-        training_images_filename = dataset_datapath+"input_training_data_"+Pooling+"_"+Fold_name+".npy"
-        testing_images_filename = dataset_datapath+"input_testing_data_"+Pooling+"_"+Fold_name+".npy"
-        training_labels_filename = CONST_STR_DATASET_FOLDS_DATAPATH+"output_training_data_"+Fold_name+".npy"
-        testing_labels_filename = CONST_STR_DATASET_FOLDS_DATAPATH+"output_testing_data_"+Fold_name+".npy"
+        training_images_filename = os.path.join(dataset_datapath,"input_training_data_"+Pooling+"_"+Fold_name+".npy")
+        testing_images_filename = os.path.join(dataset_datapath,"input_testing_data_"+Pooling+"_"+Fold_name+".npy")
+        training_labels_filename = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"output_training_data_"+Fold_name+".npy")
+        testing_labels_filename = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"output_testing_data_"+Fold_name+".npy")
     else:
-        training_images_filename = dataset_datapath+"input_training_data_"+Fold_name+".npy"
-        testing_images_filename = dataset_datapath+"input_testing_data_"+Fold_name+".npy"
-        training_labels_filename = CONST_STR_DATASET_FOLDS_DATAPATH+"output_training_data_"+Fold_name+".npy"
-        testing_labels_filename = CONST_STR_DATASET_FOLDS_DATAPATH+"output_testing_data_"+Fold_name+".npy"
+        training_images_filename = os.path.join(dataset_datapath,"input_training_data_"+Fold_name+".npy")
+        testing_images_filename = os.path.join(dataset_datapath,"input_testing_data_"+Fold_name+".npy")
+        training_labels_filename = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"output_training_data_"+Fold_name+".npy")
+        testing_labels_filename = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"output_testing_data_"+Fold_name+".npy")
 
-    number_of_frames_train_filename = CONST_STR_DATASET_FOLDS_DATAPATH+"nof_train_"+Fold_name+".npy"
-    number_of_frames_test_filename = CONST_STR_DATASET_FOLDS_DATAPATH+"nof_test_"+Fold_name+".npy"
+    number_of_frames_train_filename = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"nof_train_"+Fold_name+".npy")
+    number_of_frames_test_filename = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"nof_test_"+Fold_name+".npy")
 
     try:
         training_images = np.load(training_images_filename)
@@ -280,7 +280,7 @@ def loadAuxiliaryInput(fold, input_type, LSTM, time_steps, causal_prediction, st
     stack_train = []
     for video_name in fold["training_videos"]:
         video_name = video_name.replace(".MPG", ".json")
-        video_file = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+video_name+"."+input_type+".npy")
+        video_file = np.load(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FRCNN_DATAPATH,video_name+"."+input_type+".npy"))
 
         if LSTM:
             video_size = video_file.shape[0]
@@ -296,7 +296,7 @@ def loadAuxiliaryInput(fold, input_type, LSTM, time_steps, causal_prediction, st
     stack_test = []
     for video_name in fold["testing_videos"]:
         video_name = video_name.replace(".MPG", ".json")
-        video_file = np.load(CONST_STR_DATASET_FRCNN_DATAPATH+video_name+"."+input_type+".npy")
+        video_file = np.load(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FRCNN_DATAPATH,video_name+"."+input_type+".npy"))
 
         if LSTM:
             video_size = video_file.shape[0]
@@ -336,9 +336,9 @@ try:
         telegramSendMessage("Stating training in fold "+str(fold['number']))
 
         for network in networks:
-            results_datapath = CONST_STR_RESULTS_DATAPATH+fold['name']+'/'+network['model_name']
+            results_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_RESULTS_DATAPATH,fold['name'],network['model_name'])
 
-            if not os.path.isfile(results_datapath+'/lossPlot.png'):    #If this file exists, this test was already done
+            if not os.path.isfile(os.path.join(results_datapath,'lossPlot.png')):    #If this file exists, this test was already done
                 # -------------------------- DATASET LOAD -------------------------- #
                 print_info("Loading "+fold['name']+" dataset for model "+network['model_name'])
                 telegramSendMessage("Loading "+fold['name']+" dataset for model "+network['model_name'])
@@ -401,7 +401,7 @@ try:
 
                 learning_schedule = LearningRateScheduler(scheduler)
 
-                model_checkpoint = ModelCheckpoint(results_datapath+'/model_checkpoint.hdf5',
+                model_checkpoint = ModelCheckpoint(os.path.join(results_datapath,'model_checkpoint.hdf5'),
                                                     monitor='val_loss',
                                                     verbose=2,
                                                     save_best_only=True,
@@ -424,7 +424,7 @@ try:
                 model.compile(optimizer=opt, loss=loss_function) #  We can not use accuracy as a metric in this model
 
                 #Show network model in terminal and save it to disk
-                netconfig_file = open(results_datapath+'/network_configuration.txt', 'w')
+                netconfig_file = open(os.path.join(results_datapath,'network_configuration.txt'), 'w')
                 print_info('Fitting the following model:')
                 netconfig_file.write('Fitting the following model:\n')
                 for key, value in network.items():
@@ -496,7 +496,7 @@ try:
                 #Save the fitting history to disk
                 fit_history_df = pandas.DataFrame(fit_history.history)
 
-                with open(results_datapath+'/fit_history.csv', mode='w') as f:
+                with open(os.path.join(results_datapath,'fit_history.csv'), mode='w') as f:
                     fit_history_df.to_csv(f)
                 
                 telegramSendMessage('Saving vizualization data for '+network['model_name'])
@@ -511,10 +511,10 @@ try:
                 Y_predicted = np.reshape(Y_predicted, newshape)
                 Y_vtest = np.reshape(Y_test, newshape)
 
-                np.save(results_datapath+'/res_real_lastepoch_test.npy', Y_vtest[0:PLOT_SIZE])
-                np.save(results_datapath+'/res_prediction_lastepoch_test.npy', Y_predicted)
+                np.save(os.path.join(results_datapath,'res_real_lastepoch_test.npy'), Y_vtest[0:PLOT_SIZE])
+                np.save(os.path.join(results_datapath,'res_prediction_lastepoch_test.npy'), Y_predicted)
 
-                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Test_lastepoch.png')
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='prediction_Test_lastepoch.png')
                 # ------------------- predicte over train set ------------------- #
                 """
                 print_info("Predicting output for train data over last epoch")
@@ -541,7 +541,7 @@ try:
                 plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Train_lastepoch.png')
                 """
                 # # ------------------- Load best checkpoint weigths ------------------- # #
-                model.load_weights(os.path.join(results_datapath, 'model_checkpoint.hdf5'))
+                model.load_weights(os.path.join(results_datapath,'model_checkpoint.hdf5'))
                 # # ------------------- Load best checkpoint weigths ------------------- # #
                 # # ------------------- predicte over test set ------------------- #
                 print_info("Predicting output for test data over best checkpoint")
@@ -552,10 +552,10 @@ try:
                 Y_predicted = np.reshape(Y_predicted, newshape)
                 Y_vtest = np.reshape(Y_test, newshape)
 
-                np.save(results_datapath+'/res_real_checkpoint_test.npy', Y_vtest[0:PLOT_SIZE])
-                np.save(results_datapath+'/res_prediction_checkpoint_test.npy', Y_predicted)
+                np.save(os.path.join(results_datapath,'res_real_checkpoint_test.npy'), Y_vtest[0:PLOT_SIZE])
+                np.save(os.path.join(results_datapath,'res_prediction_checkpoint_test.npy'), Y_predicted)
 
-                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='/prediction_Test_checkpoint.png')
+                plotAudioPowerWithPrediction(Y_vtest, Y_predicted, to_file=True, image_path=results_datapath, image_name='prediction_Test_checkpoint.png')
                 # ------------------- predicte over train set ------------------- #
                 """
                 print_info("Predicting output for train data over best checkpoint")

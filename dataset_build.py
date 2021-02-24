@@ -66,11 +66,11 @@ def dataset_build(train_videos, test_videos):
         # load config file with all processed videos in disk
 
         try:    #load the config file
-            with open(CONST_STR_DATASET_DATAPATH+CONST_STR_DATASET_CONFIG_FILENAME, "rb") as fp:
+            with open(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_CONFIG_FILENAME), "rb") as fp:
                 processed_videos = pickle.load(fp)
 
         except:     #   new dataset, config file does not exist
-            print_error("There is no config file on system. We should run the dataset_process.py script before atempting to build it")
+            print_error("There is no config file on system. You should run the dataset_process.py script before atempting to build it")
             exit(1)
 
         #   Check if i'm passing a video that is not processed in the dataset
@@ -120,16 +120,16 @@ def dataset_build(train_videos, test_videos):
         first_video = True
         for video_name in train_videos:
 
-            video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
+            video_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,video_name.replace(".", ""))
 
             #   Get total number of frames in video
-            with open(video_datapath+'/'+CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME, "rb") as fp:
+            with open(os.path.join(video_datapath,CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME), "rb") as fp:
                 number_of_frames = pickle.load(fp)
             train_number_of_frames.append(number_of_frames)
 
             #   Get the statistics in the video
             #   Put those in the train_mean and train_std ndarrays
-            with open(video_datapath+'/'+CONS_STR_DATASET_STATISTICS_FILENAME, "rb") as fp:
+            with open(os.path.join(video_datapath,CONS_STR_DATASET_STATISTICS_FILENAME), "rb") as fp:
                 video_statistics = pickle.load(fp)
             
             video_statistics = np.asarray(video_statistics)
@@ -141,7 +141,7 @@ def dataset_build(train_videos, test_videos):
                 train_std = np.vstack((train_std, video_statistics[1]))
        
             #   Load numpy video data. 
-            video_data = np.load(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
+            video_data = np.load(os.path.join(video_datapath,CONS_STR_DATASET_STACKED_FRAMES_FILENAME))
 
             if first_video:
                 #   Declare the train data. this is the input data used to train the model
@@ -150,7 +150,7 @@ def dataset_build(train_videos, test_videos):
                 input_train_data = np.vstack((input_train_data, video_data))
 
             #   Load numpy output data. 
-            audio_data = np.load(video_datapath+CONS_STR_DATASET_AUDIODATA_FILENAME)
+            audio_data = np.load(os.path.join(video_datapath,CONS_STR_DATASET_AUDIODATA_FILENAME))
 
             # If audio file is Stereo, I take the mean between both chanels and concatenate in one channel
             try:
@@ -189,16 +189,16 @@ def dataset_build(train_videos, test_videos):
         first_video = True
         for video_name in test_videos:
 
-            video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
+            video_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,video_name.replace(".", ""))
 
             #   Get total number of frames in video
-            with open(video_datapath+'/'+CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME, "rb") as fp:
+            with open(os.path.join(video_datapath,CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME), "rb") as fp:
                 number_of_frames = pickle.load(fp)
             test_number_of_frames.append(number_of_frames)
 
             #   Get the statistics in the video
             #   Put those in the train_mean and train_std ndarrays
-            with open(video_datapath+'/'+CONS_STR_DATASET_STATISTICS_FILENAME, "rb") as fp:
+            with open(os.path.join(video_datapath,CONS_STR_DATASET_STATISTICS_FILENAME), "rb") as fp:
                 video_statistics = pickle.load(fp)
             
             video_statistics = np.asarray(video_statistics)
@@ -210,7 +210,7 @@ def dataset_build(train_videos, test_videos):
                 test_std = np.vstack((test_std, video_statistics[1]))
        
             #   Load numpy video data. 
-            video_data = np.load(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
+            video_data = np.load(os.path.join(video_datapath,CONS_STR_DATASET_STACKED_FRAMES_FILENAME))
 
             if first_video:
                 #   Declare the train data. this is the input data used to train the model
@@ -219,7 +219,7 @@ def dataset_build(train_videos, test_videos):
                 input_test_data = np.vstack((input_test_data, video_data))
 
             #   Load numpy output data.
-            audio_data = np.load(video_datapath+CONS_STR_DATASET_AUDIODATA_FILENAME)
+            audio_data = np.load(os.path.join(video_datapath,CONS_STR_DATASET_AUDIODATA_FILENAME))
 
             # If audio file is Stereo, I take the mean between both chanels and concatenate in one channel
             try:
@@ -268,7 +268,7 @@ if __name__ == "__main__":
 
     #   Make directory to hold this folder information
     try:
-        fold_path = CONST_STR_DATASET_FOLDS_DATAPATH
+        fold_path = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH)
         if not os.path.exists(fold_path):
             os.makedirs(fold_path)
     except OSError:
@@ -294,12 +294,12 @@ if __name__ == "__main__":
         telegramSendMessage("Saving fold "+str(fold['number'])+" to disk")
         print_info("Saving fold "+str(fold['number'])+" to disk")
 
-        np.save(fold_path+"input_training_data_"+fold['name'], input_train_data)
-        np.save(fold_path+"output_training_data_"+fold['name'], output_train_data)
-        np.save(fold_path+"input_testing_data_"+fold['name'], input_test_data)
-        np.save(fold_path+"output_testing_data_"+fold['name'], output_test_data)
-        np.save(fold_path+"nof_train_"+fold['name'], train_number_of_frames)
-        np.save(fold_path+"nof_test_"+fold['name'], test_number_of_frames)
+        np.save(os.path.join(fold_path,"input_training_data_"+fold['name']), input_train_data)
+        np.save(os.path.join(fold_path,"output_training_data_"+fold['name']), output_train_data)
+        np.save(os.path.join(fold_path,"input_testing_data_"+fold['name']), input_test_data)
+        np.save(os.path.join(fold_path,"output_testing_data_"+fold['name']), output_test_data)
+        np.save(os.path.join(fold_path,"nof_train_"+fold['name']), train_number_of_frames)
+        np.save(os.path.join(fold_path,"nof_test_"+fold['name']), test_number_of_frames)
 
         #   Forcefully collect all garbage in memory 
         del input_train_data

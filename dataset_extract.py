@@ -80,11 +80,11 @@ def extract_folds_features(argv):
 
     #   Create folder to host all extracted models
     if (args.network == "vgg16"):
-        extraction_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_VGG16
+        extraction_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,CONST_STR_DATASET_FEATURES_VGG16)
     if (args.network == "inceptionV3"):
-        extraction_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_INCEPTIONV3
+        extraction_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,CONST_STR_DATASET_FEATURES_INCEPTIONV3)
     if (args.network == "resnet50"):
-        extraction_datapath = CONST_STR_DATASET_FOLDS_DATAPATH+CONST_STR_DATASET_FEATURES_RESNET50
+        extraction_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,CONST_STR_DATASET_FEATURES_RESNET50)
 
     try:
         if not os.path.exists(extraction_datapath):
@@ -101,8 +101,8 @@ def extract_folds_features(argv):
             telegramSendMessage("Loading dataset from "+fold["name"])
 
             try:
-                input_train_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_training_data_"+fold['name']+".npy")
-                input_test_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_testing_data_"+fold['name']+".npy")
+                input_train_data = np.load(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"input_training_data_"+fold['name']+".npy"))
+                input_test_data = np.load(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"input_testing_data_"+fold['name']+".npy"))
             except:
                 print_error("Could not find dataset. Did you build it?")
                 telegramSendMessage("Could not find dataset. Did you build it?")
@@ -133,7 +133,7 @@ def extract_folds_features(argv):
             #Save the extracted features
             print_info("Saving training features")
             telegramSendMessage("Saving training features")
-            np.save(extraction_datapath+"input_training_data_"+args.pooling+"_"+fold["name"], train_features)
+            np.save(os.path.join(extraction_datapath,"input_training_data_"+args.pooling+"_"+fold["name"]), train_features)
 
             ###   Repeat to test dataset
             print_info("Extracting testing features")
@@ -151,7 +151,7 @@ def extract_folds_features(argv):
             #Save the extracted features
             print_info("Saving testing features")
             telegramSendMessage("Saving testing features")
-            np.save(extraction_datapath+"input_testing_data_"+args.pooling+"_"+fold["name"], test_features)
+            np.save(os.path.join(extraction_datapath,"input_testing_data_"+args.pooling+"_"+fold["name"]), test_features)
 
             #   Forcefully delete input datas from memory
             del input_train_data
@@ -166,8 +166,8 @@ def extract_folds_features(argv):
         telegramSendMessage("Loading dataset from "+fold_name)
 
         try:
-            input_train_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_training_data_"+fold_name+".npy")
-            input_test_data = np.load(CONST_STR_DATASET_FOLDS_DATAPATH+"input_testing_data_"+fold_name+".npy")
+            input_train_data = np.load(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"input_training_data_"+fold_name+".npy"))
+            input_test_data = np.load(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_FOLDS_DATAPATH,"input_testing_data_"+fold_name+".npy"))
         except:
             print_error("Could not find dataset. Did you build it?")
             telegramSendMessage("Could not find dataset. Did you build it?")
@@ -198,7 +198,7 @@ def extract_folds_features(argv):
         #Save the extracted features
         print_info("Saving training features")
         telegramSendMessage("Saving training features")
-        np.save(extraction_datapath+"input_training_data_"+args.pooling+"_"+fold_name, train_features)
+        np.save(os.path.join(extraction_datapath,"input_training_data_"+args.pooling+"_"+fold_name), train_features)
 
         ###   Repeat to test dataset
         print_info("Extracting testing features")
@@ -216,7 +216,7 @@ def extract_folds_features(argv):
         #Save the extracted features
         print_info("Saving testing features")
         telegramSendMessage("Saving testing features")
-        np.save(extraction_datapath+"input_testing_data_"+args.pooling+"_"+fold_name, test_features)
+        np.save(os.path.join(extraction_datapath,"input_testing_data_"+args.pooling+"_"+fold_name), test_features)
 
         #   Forcefully delete input datas from memory
         del input_train_data

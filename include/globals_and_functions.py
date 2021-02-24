@@ -26,29 +26,30 @@ from keras.applications.vgg16 import preprocess_input
 #Dataset creation constants
 # -------------------------------------------------------- #
 # this constant indicates how much of the data will be used as train data
-CONST_STR_DATASET_RAW_DATAPATH = "./dataset/raw/"   #Path in which all raw video files are
+CONST_STR_DATASET_BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONST_STR_DATASET_RAW_DATAPATH = "raw"   #Path in which all raw video files are
 CONST_STR_DATASET_CONFIG_FILENAME = "config"        #this is the name of the config file for raw videos
-CONST_STR_DATASET_DATAPATH = "./dataset/"           #Datapath for the dataset
-CONST_STR_DATASET_FRCNN_DATAPATH = "./dataset/fasterRCNN_features/"
+CONST_STR_DATASET_DATAPATH = "dataset"           #Datapath for the dataset
+CONST_STR_DATASET_FRCNN_DATAPATH = "fasterRCNN_features"
 CONST_STR_DATASET_OUTPUT_RESOLUTION = "224x224"     #Output resolution of video for
 CONST_VEC_DATASET_OUTPUT_RESOLUTION = (224, 224)
 CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE = (224, 224, 3)
 CONST_INT_DATASET_DECIMATION_FACTOR = 10            #This number determines factor of decimation when extracting frames from video
 CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME = "nmb_of_frames"
-CONS_STR_DATASET_AUDIOFILE_FILENAME = "/audioData.wav"
-CONS_STR_DATASET_AUDIODATA_FILENAME = "/audioData.npy"
-CONS_STR_DATASET_STATISTICS_FILENAME = "/statistics"
-CONS_STR_DATASET_STACKED_FRAMES_FILENAME = "/imagedata.npy"
-CONST_STR_DATASET_FOLDS_DATAPATH = "./dataset/folds/"
-CONST_STR_DATASET_FEATURES_VGG16 = "vgg16/"
-CONST_STR_DATASET_FEATURES_RESNET50 = "resnet50/"
-CONST_STR_DATASET_FEATURES_INCEPTIONV3 = "inceptionV3/"
+CONS_STR_DATASET_AUDIOFILE_FILENAME = "audioData.wav"
+CONS_STR_DATASET_AUDIODATA_FILENAME = "audioData.npy"
+CONS_STR_DATASET_STATISTICS_FILENAME = "statistics"
+CONS_STR_DATASET_STACKED_FRAMES_FILENAME = "imagedata.npy"
+CONST_STR_DATASET_FOLDS_DATAPATH = "folds"
+CONST_STR_DATASET_FEATURES_VGG16 = "vgg16"
+CONST_STR_DATASET_FEATURES_RESNET50 = "resnet50"
+CONST_STR_DATASET_FEATURES_INCEPTIONV3 = "inceptionV3"
 
 CONST_VEC_NETWORK_VGG16_OUTPUTSHAPE = (7, 7, 512)
 CONST_VEC_NETWORK_INCEPTIONV3_OUTPUTSHAPE = (5, 5, 2048)
 CONST_VEC_NETWORK_RESNET50_OUTPUTSHAPE = (7, 7, 2048)
 
-CONST_STR_RESULTS_DATAPATH = "./results/"
+CONST_STR_RESULTS_DATAPATH = "results"
 
 CUDA_GPU = "0"
 
@@ -142,7 +143,7 @@ def plotAudioPowerWithPrediction(testSamples,predictedSamples,to_file=False,imag
     if to_file == False:
         plt.show()
     else:
-        plt.savefig(image_path+image_name)
+        plt.savefig(os.path.join(image_path,image_name))
 
     pass
 
@@ -157,5 +158,5 @@ def plotTrainingLoss(history, to_file=False, image_path='.'):
     if to_file == False:
         plt.show()
     else:
-        plt.savefig(image_path+'/lossPlot.png')
+        plt.savefig(os.path.join(image_path,'lossPlot.png'))
     pass

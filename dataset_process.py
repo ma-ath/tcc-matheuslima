@@ -1,20 +1,20 @@
 #
 #   I did not made a manual memory free in this script
 #
-try:
-    import cv2
-    import numpy as np
-    import os
-    from os import listdir
-    from os.path import isfile, join
-    import scipy.io.wavfile
-    from math import floor
-    import re
-    import pickle
-    from imutils import paths
-    from include.telegram_logger import *
-    from include.globals_and_functions import *
+import cv2
+import numpy as np
+import os
+from os import listdir
+from os.path import isfile, join
+import scipy.io.wavfile
+from math import floor
+import re
+import pickle
+from imutils import paths
+from include.telegram_logger import *
+from include.globals_and_functions import *
 
+try:
     #check if needed programs are installed
     print_info("Checking necessary tools")
     #if not is_tool("ffmpeg"):
@@ -27,13 +27,12 @@ try:
 
     print_info("Reading filepath off all videos")
     #Get the path of ALL videos in the raw folder. All videos are stored in the dataset/raw path
-    dataset_raw_datapath = [f for f in listdir(CONST_STR_DATASET_RAW_DATAPATH) if isfile(join(CONST_STR_DATASET_RAW_DATAPATH, f))]
-
+    dataset_raw_datapath = [f for f in listdir(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH, CONST_STR_DATASET_RAW_DATAPATH)) if isfile(join(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH, CONST_STR_DATASET_RAW_DATAPATH), f))]
     # # First, check what videos were already processed. To do this, we load the "config" file in the dataset directory,
     # # and check for which videos are "new" in the raw folder. We only need to process those
 
     try:    #load the config file
-        with open(CONST_STR_DATASET_DATAPATH+CONST_STR_DATASET_CONFIG_FILENAME, "rb") as fp:
+        with open(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_CONFIG_FILENAME), "rb") as fp:
             dataset_config_file = pickle.load(fp)
 
         #   here we see what videos were already processed and which were not
@@ -66,10 +65,9 @@ try:
     #extract frames and sound for each video in train data!
     for video_name in unprocessed_videos:
         #   Datapath of raw video (where the raw video is)
-        video_raw_datapath = CONST_STR_DATASET_RAW_DATAPATH + video_name
+        video_raw_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_RAW_DATAPATH,video_name)
         #   Datapath of the processed information of video
-        video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
-
+        video_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,video_name.replace(".", ""))
         #   Make directory to hold all extracted information from the video
         try:
             if not os.path.exists(video_datapath):
@@ -89,7 +87,7 @@ try:
         #cap = cv2.VideoCapture(CONST_STR_DATASET_DATAPATH+"resized-"+video_name)
         #   I stoped using ffmpeg after noticing undesired compression artifacts 
         #   on the output frames. Using cv2.resize() is a much better alternative
-        cap = cv2.VideoCapture(CONST_STR_DATASET_RAW_DATAPATH+video_name)
+        cap = cv2.VideoCapture(video_raw_datapath)
 
         currentFrame = 0    # This variable counts the frame in the extracted video
         videoFrame = 0      # This variable counts the actual frame in the raw video
@@ -107,7 +105,7 @@ try:
             if videoFrame%CONST_INT_DATASET_DECIMATION_FACTOR == 0:
                 if ret:
                     # Saves image of the current frame in png file
-                    frame_name = video_datapath+'/'+ str(currentFrame) + '.png'
+                    frame_name = os.path.join(video_datapath,str(currentFrame)+'.png')
                     #   Frame resize
                     frame = cv2.resize(frame, CONST_VEC_DATASET_OUTPUT_RESOLUTION)
                     cv2.imwrite(frame_name, frame)
@@ -131,12 +129,12 @@ try:
             
             #   We here delete those 'extra' video frames
             for i in range(total_number_of_video_frames-number_of_extra_extracted_frames, total_number_of_video_frames, 1):
-                extra_frame = video_datapath+'/'+ str(i) + '.png'
+                extra_frame = os.path.join(video_datapath,str(i)+'.png')
                 os.system('rm -f '+extra_frame)
             total_number_of_video_frames = total_number_of_video_frames - number_of_extra_extracted_frames
             print_warning(str(number_of_extra_extracted_frames)+" were deleted. Total number of frames: "+str(total_number_of_video_frames))
-        # Save the number of frames in this video on the frames folder
-        with open(video_datapath+'/'+CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME, "wb") as fp:
+        # Save the number of frames in this video on the frames clfolder
+        with open(os.path.join(video_datapath,CONST_STR_DATASET_NMB_OF_FRAMES_FILENAME), "wb") as fp:
             pickle.dump(total_number_of_video_frames, fp)
 
         print_info(str(total_number_of_video_frames)+" frames were extracted from video "+video_name)
@@ -151,7 +149,7 @@ try:
             telegramSendMessage("Extracting audio information from video "+video_name)
 
             #   Execute command to extract only audio from video
-            audio_filepath = video_datapath+CONS_STR_DATASET_AUDIOFILE_FILENAME
+            audio_filepath = os.path.join(video_datapath,CONS_STR_DATASET_AUDIOFILE_FILENAME)
             os_command = "ffmpeg -i "+video_raw_datapath+" "+audio_filepath
             os.system(os_command)
 
@@ -197,7 +195,7 @@ try:
                     St[i, 1] = log(partialSumRight)
             """
             # save numpy array as .npy file
-            np.save(video_datapath+CONS_STR_DATASET_AUDIODATA_FILENAME, St)
+            np.save(os.path.join(video_datapath,CONS_STR_DATASET_AUDIODATA_FILENAME), St)
 
     #   ------------------- dataset_build
 
@@ -208,9 +206,9 @@ try:
         first_frame = True
 
         #   Datapath of raw video (where the raw video is)
-        video_raw_datapath = CONST_STR_DATASET_RAW_DATAPATH + video_name
+        video_raw_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_RAW_DATAPATH,video_name)
         #   Datapath of the processed information of video
-        video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
+        video_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,video_name.replace(".", ""))
 
         # grab all image paths and order it correctly
         frame_datapaths = list(paths.list_images(video_datapath))
@@ -232,17 +230,17 @@ try:
                 stacked_frames_array = np.vstack((stacked_frames_array, frame_data))
 
         #   Save the stacked frames numpy to the corresponding video folder
-        print_info("Saving stacked frames data to "+video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
-        np.save(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME, stacked_frames_array)
+        print_info("Saving stacked frames data to "+os.path.join(video_datapath,CONS_STR_DATASET_STACKED_FRAMES_FILENAME))
+        np.save(os.path.join(video_datapath,CONS_STR_DATASET_STACKED_FRAMES_FILENAME), stacked_frames_array)
 
     #Last step: Calculate mean and std for each video in dataset. Save this information in disk
     for video_name in unprocessed_videos:
         print_info("Loading numpy dataset for mean and std calculation")
 
         #   Load numpy array
-        video_datapath = CONST_STR_DATASET_DATAPATH + video_name.replace(".", "")
+        video_datapath = os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,video_name.replace(".", ""))
 
-        video_data = np.load(video_datapath+CONS_STR_DATASET_STACKED_FRAMES_FILENAME)
+        video_data = np.load(os.path.join(video_datapath,CONS_STR_DATASET_STACKED_FRAMES_FILENAME))
         video_data = np.reshape(video_data, (video_data.shape[0],)+CONST_VEC_DATASET_OUTPUT_IMAGE_SHAPE)
 
         #   Calculate mean and std of video
@@ -255,11 +253,11 @@ try:
         print("std: " +'\t'+str(statistics[1]))
 
         #   Save it to a file
-        with open(video_datapath+CONS_STR_DATASET_STATISTICS_FILENAME, "wb") as fp:
+        with open(os.path.join(video_datapath,CONS_STR_DATASET_STATISTICS_FILENAME), "wb") as fp:
             pickle.dump(statistics, fp)
 
     # Save the information of all videos on file
-    with open(CONST_STR_DATASET_DATAPATH+CONST_STR_DATASET_CONFIG_FILENAME, "wb") as fp:
+    with open(os.path.join(CONST_STR_DATASET_BASE_PATH,CONST_STR_DATASET_DATAPATH,CONST_STR_DATASET_CONFIG_FILENAME), "wb") as fp:
         pickle.dump(dataset_config_file, fp)
 
     print_info("Script ended successfully")
