@@ -12,7 +12,7 @@ Concluímos que a predição do nível sonoro de ruas a partir de imagens de câ
 
 Palavras-Chave: Pressão sonora, aprendizado de máquina, redes convolucionais, processamento audiovisual, cidades inteligentes.
 
-[Texto completo pode ser encontrado aqui](https://drive.google.com/file/d/1H2Wuc7mlNF-sxCVDyYWWtQqwYYK3zNZe/view?usp=sharing)
+[Texto completo pode ser encontrado aqui](https://www.monografias.poli.ufrj.br/monografias/monopoli10032736.pdf)
 
 # Como rodar o código
 
