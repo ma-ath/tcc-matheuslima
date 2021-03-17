@@ -1,6 +1,6 @@
 # Método de Estimação da Pressão Sonora em Câmeras de Segurança Usando Redes Neurais Artificiais
 [English](https://github.com/ma-ath/tcc-matheuslima/blob/master/readme/README.en.md)
-[日本語](https://github.com/ma-ath/tcc-matheuslima/blob/master/readme/README.jp.md)
+<!--[日本語](https://github.com/ma-ath/tcc-matheuslima/blob/master/readme/README.jp.md)-->
 
 O nível de pressão sonora em ruas é uma informação importante para o planejamento urbano. Medir esta informação através de uma rede de microfones é uma solução que requer a implementação de uma nova infraestrutura, o que pode demandar um investimento monetário considerável. Cidades costumam já possuir uma infraestrutura de câmeras de tráfego. Tais câmeras entretanto não costumam possuir microfones. Propomos uma solução para avaliação de pressão sonora em cidades utilizando a infraestrutura já existente de câmeras de tráfego, estimando a pressão sonora a partir de imagens das mesmas.
 
