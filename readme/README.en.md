@@ -13,7 +13,7 @@ We conclude that traffic sound pressure prediction from CCTV camera images is po
 Key-words: Sound pressure, machine learning, convolutional neural networks, audiovisual signal processing, smart cities.
 
 
-[Read full text](https://drive.google.com/file/d/1H2Wuc7mlNF-sxCVDyYWWtQqwYYK3zNZe/view?usp=sharing)
+[Read full text](https://www.monografias.poli.ufrj.br/monografias/monopoli10032736.pdf)
 
 # How to run
 
