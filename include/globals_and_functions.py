@@ -11,16 +11,16 @@ from math import floor, log
 import re
 import pickle
 from tensorflow import keras
-from keras.optimizers import Adam
-from keras.losses import mean_squared_error
-from keras.models import model_from_json
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import mean_squared_error
+from tensorflow.keras.models import model_from_json
 import numpy as np
 from PIL import Image
 import re
 from matplotlib import pyplot as plt
 import pandas
 from random import randrange, seed
-from keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
 # ------------------- GLOBAL_CONSTANTS ------------------- #
 #Dataset creation constants
